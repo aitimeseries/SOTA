@@ -1,0 +1,19 @@
+site_name: State of the Art — AI & Time Series
+site_url: https://aitimeseries.com
+
+theme:
+  name: material
+  language: en
+  palette:
+    primary: indigo
+    accent: blue
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - toc.integrate
+
+nav:
+  - Home: index.md
+  - IEEE P3579: p3579/index.md
+  - IEEE P3998: p3998/index.md
