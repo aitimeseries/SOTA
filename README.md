@@ -1,6 +1,6 @@
-# SOTA
+# State of the Art on AI and Time Series
 
-**State of the Art on AI and Time Series**
+**IEEE AI & Time Series Working Group**
 
 Public documentation site for the **IEEE AI & Time Series Working Group**, automatically synchronized with Zotero group libraries.
 
