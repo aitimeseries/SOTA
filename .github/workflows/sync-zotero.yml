@@ -1,8 +1,12 @@
 name: Sync Zotero References
 on:
   schedule:
-    - cron: '0 8 * * 1'   # every Monday at 8:00 AM
-  workflow_dispatch:        # manual trigger
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   sync:
@@ -27,7 +31,7 @@ jobs:
           ZOTERO_GROUP_ID_P3998:  ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
 
       - name: Open Pull Request if changes
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token:          ${{ secrets.GITHUB_TOKEN }}
           title:          "refs: Zotero sync"
