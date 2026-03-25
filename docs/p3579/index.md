@@ -8,8 +8,8 @@ _No references yet._
 
 | Authors | Title | Year | DOI |
 |---------|-------|------|-----|
-| — | [Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets) | 2025 |  |
 | — | [Time Series Forecasting Models – Hugging Face](https://huggingface.co/models) | 2026 |  |
+| — | [Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets) | 2025 |  |
 
 ## PUBLICATIONS
 
