@@ -54,6 +54,13 @@ def render_table(group_id, items):
     if not items:
         return "_No references yet._\n\n"
 
+    # Sort by year, most recent first
+    items = sorted(
+        items,
+        key=lambda i: str(i.get("data", {}).get("date", "0"))[:4],
+        reverse=True,
+    )
+
     output = "| Authors | Title | Year | DOI |\n"
     output += "|---------|-------|------|-----|\n"
 
