@@ -146,6 +146,4 @@ In the repo Settings → Pages:
 
 The `deploy.yml` workflow includes `cname: aitimeseries.com` in the `peaceiris/actions-gh-pages` step to ensure the `CNAME` file is preserved on every deployment. Without this, each deploy would overwrite the `gh-pages` branch and remove the custom domain configuration.
 
-## License
-
-This project is maintained by the [IEEE AI & Time Series Working Group](https://github.com/aitimeseries).
+*This project is maintained by the [IEEE AI & Time Series Working Group](https://github.com/aitimeseries).*
