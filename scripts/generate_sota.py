@@ -37,13 +37,28 @@ def get_items(group_id, col_key):
     return r.json()
 
 def get_all_items(group_id):
-    """Fetch all top-level items in the group library."""
+    """Fetch all top-level items in the group (used for contributors list)."""
     r = requests.get(
         f"{BASE_URL}/groups/{group_id}/items/top",
         params={"format": "json", "limit": 100},
         headers=HEADERS
     )
     return r.json()
+
+def get_contributors(items):
+    """Extract unique contributor usernames from item metadata.
+
+    Zotero places createdByUser in item['meta'], not item['data'].
+    """
+    contributors = set()
+    for item in items:
+        # createdByUser is in the 'meta' section of the Zotero API response
+        user = item.get("meta", {}).get("createdByUser", {})
+        if isinstance(user, dict):
+            name = user.get("username", "")
+            if name:
+                contributors.add(name)
+    return sorted(contributors)
 
 def get_notes(group_id, item_key):
     """Fetch notes attached to a reference."""
@@ -58,17 +73,6 @@ def clean_note(html_note):
     """Strip basic HTML tags from Zotero note content."""
     import re
     return re.sub(r'<[^>]+>', '', html_note).strip()
-
-def get_contributors(items):
-    """Extract unique contributors from all items in the library."""
-    contributors = set()
-    for item in items:
-        user = item.get("data", {}).get("createdByUser", {})
-        if isinstance(user, dict):
-            name = user.get("username", "")
-            if name:
-                contributors.add(name)
-    return sorted(contributors)
 
 def render_table(group_id, items):
     if not items:
@@ -99,12 +103,13 @@ def render_table(group_id, items):
 
         output += f"| {authors} | {title_cell} | {year} | {doi} |\n"
 
-        # WG Notes
+        # WG Notes — createdByUser is in meta for notes too
         notes = get_notes(group_id, item["data"]["key"])
         for note in notes:
             note_data = note.get("data", {})
+            note_meta = note.get("meta", {})
             content   = clean_note(note_data.get("note", ""))
-            creator   = note_data.get("createdByUser", {}).get("username", "WG")
+            creator   = note_meta.get("createdByUser", {}).get("username", "WG")
             date      = note_data.get("dateAdded", "")[:10]
             if content:
                 output += f"\n> 💬 **WG Note:** {content} *({creator}, {date})*\n\n"
@@ -141,10 +146,9 @@ for wg, group_id in GROUPS.items():
     for root_key in roots:
         output += render_section(group_id, root_key, collections, children)
 
-    # ── Contributors ─────────────────────────────────────────────────────────
+    # Contributors section
     all_items    = get_all_items(group_id)
     contributors = get_contributors(all_items)
-
     if contributors:
         output += "\n---\n\n## Contributors\n\n"
         output += "*The following members have contributed references to this library:*\n\n"
