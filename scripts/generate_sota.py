@@ -1,4 +1,4 @@
-import requests, os
+import requests, os, json
 
 API_KEY  = os.environ["ZOTERO_API_KEY"]
 HEADERS  = {"Zotero-API-Key": API_KEY}
@@ -46,16 +46,18 @@ def get_all_items(group_id):
     return r.json()
 
 def get_contributors(items):
-    """Extract unique contributor usernames from item metadata.
+    """Extract unique contributor usernames.
 
     Zotero places createdByUser in item['meta'], not item['data'].
+    Falls back to 'addedBy' and 'name' if 'username' is absent.
     """
     contributors = set()
     for item in items:
-        # createdByUser is in the 'meta' section of the Zotero API response
-        user = item.get("meta", {}).get("createdByUser", {})
+        meta = item.get("meta", {})
+        user = meta.get("createdByUser", {})
         if isinstance(user, dict):
-            name = user.get("username", "")
+            # Try username first, then name
+            name = user.get("username") or user.get("name", "")
             if name:
                 contributors.add(name)
     return sorted(contributors)
@@ -78,7 +80,6 @@ def render_table(group_id, items):
     if not items:
         return "_No references yet._\n\n"
 
-    # Sort by year, most recent first
     items = sorted(
         items,
         key=lambda i: str(i.get("data", {}).get("date", "0"))[:4],
@@ -98,13 +99,12 @@ def render_table(group_id, items):
         year    = str(d.get("date", "—"))[:4]
         doi     = d.get("DOI", "—")
 
-        # Clickable title if URL exists
         title_cell = f"[{title}]({url})" if url else title
-
         output += f"| {authors} | {title_cell} | {year} | {doi} |\n"
 
-        # WG Notes — createdByUser is in meta for notes too
+        # WG Notes — collect all notes for this item
         notes = get_notes(group_id, item["data"]["key"])
+        item_notes = []
         for note in notes:
             note_data = note.get("data", {})
             note_meta = note.get("meta", {})
@@ -112,7 +112,22 @@ def render_table(group_id, items):
             creator   = note_meta.get("createdByUser", {}).get("username", "WG")
             date      = note_data.get("dateAdded", "")[:10]
             if content:
-                output += f"\n> 💬 **WG Note:** {content} *({creator}, {date})*\n\n"
+                item_notes.append((content, creator, date))
+
+        # Render notes as collapsible <details> blocks right after the table row
+        if item_notes:
+            output += "\n"
+            for content, creator, date in item_notes:
+                # Truncate summary to ~80 characters
+                if len(content) > 80:
+                    summary = content[:80].rsplit(" ", 1)[0] + "…"
+                else:
+                    summary = content
+                output += f'<details>\n'
+                output += f'<summary>💬 <b>WG Note:</b> {summary}</summary>\n\n'
+                output += f'{content}\n\n'
+                output += f'*({creator}, {date})*\n\n'
+                output += f'</details>\n\n'
 
     return output + "\n"
 
