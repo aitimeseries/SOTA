@@ -86,12 +86,13 @@ def render_table(group_id, items):
         reverse=True,
     )
 
-    output = "| Authors | Title | Year | DOI |\n"
-    output += "|---------|-------|------|-----|\n"
+    table_rows = ""
+    all_notes  = []
 
     for item in items:
-        d = item.get("data", {})
-        authors = ", ".join(
+        d        = item.get("data", {})
+        item_key = item["data"]["key"]
+        authors  = ", ".join(
             a.get("lastName", "") for a in d.get("creators", [])
         ) or "—"
         title   = d.get("title", "—")
@@ -100,11 +101,10 @@ def render_table(group_id, items):
         doi     = d.get("DOI", "—")
 
         title_cell = f"[{title}]({url})" if url else title
-        output += f"| {authors} | {title_cell} | {year} | {doi} |\n"
 
-        # WG Notes — collect all notes for this item
-        notes = get_notes(group_id, item["data"]["key"])
-        item_notes = []
+        # Collect WG Notes for this item
+        notes = get_notes(group_id, item_key)
+        item_has_notes = False
         for note in notes:
             note_data = note.get("data", {})
             note_meta = note.get("meta", {})
@@ -112,24 +112,32 @@ def render_table(group_id, items):
             creator   = note_meta.get("createdByUser", {}).get("username", "WG")
             date      = note_data.get("dateAdded", "")[:10]
             if content:
-                item_notes.append((content, creator, date))
+                all_notes.append((item_key, title, content, creator, date))
+                item_has_notes = True
 
-        # Render notes as collapsible <details> blocks right after the table row
-        if item_notes:
-            output += "\n"
-            for content, creator, date in item_notes:
-                # Truncate summary to ~80 characters
-                if len(content) > 80:
-                    summary = content[:80].rsplit(" ", 1)[0] + "…"
-                else:
-                    summary = content
-                output += f'<details>\n'
-                output += f'<summary>💬 <b>WG Note:</b> {summary}</summary>\n\n'
-                output += f'<p>{content}</p>\n'
-                output += f'<p><em>— {creator}, {date}</em></p>\n\n'
-                output += f'</details>\n\n'
+        # Build table row with anchor and optional note link
+        note_cell = f'<a href="#note-{item_key}">📝</a>' if item_has_notes else "—"
+        table_rows += f'| {authors} | <span id="ref-{item_key}">{title_cell}</span> | {year} | {doi} | {note_cell} |\n'
 
-    return output + "\n"
+    # Output: table first
+    output  = "| Authors | Title | Year | DOI | Notes |\n"
+    output += "|---------|-------|------|-----|-------|\n"
+    output += table_rows + "\n"
+
+    # Render notes after the table with back-links
+    if all_notes:
+        for item_key, ref_title, content, creator, date in all_notes:
+            if len(content) > 80:
+                summary = content[:80].rsplit(" ", 1)[0] + "…"
+            else:
+                summary = content
+            output += f'<details id="note-{item_key}">\n'
+            output += f'<summary>💬 <b>{ref_title}</b> — {summary}</summary>\n\n'
+            output += f'<p>{content}</p>\n'
+            output += f'<p><em>— {creator}, {date}</em> · <a href="#ref-{item_key}">↩ back to reference</a></p>\n\n'
+            output += f'</details>\n\n'
+
+    return output
 
 def render_section(group_id, col_key, collections, children, depth=2):
     col     = collections[col_key]
