@@ -36,6 +36,15 @@ def get_items(group_id, col_key):
     )
     return r.json()
 
+def get_all_items(group_id):
+    """Fetch all top-level items in the group library."""
+    r = requests.get(
+        f"{BASE_URL}/groups/{group_id}/items/top",
+        params={"format": "json", "limit": 100},
+        headers=HEADERS
+    )
+    return r.json()
+
 def get_notes(group_id, item_key):
     """Fetch notes attached to a reference."""
     r = requests.get(
@@ -49,6 +58,17 @@ def clean_note(html_note):
     """Strip basic HTML tags from Zotero note content."""
     import re
     return re.sub(r'<[^>]+>', '', html_note).strip()
+
+def get_contributors(items):
+    """Extract unique contributors from all items in the library."""
+    contributors = set()
+    for item in items:
+        user = item.get("data", {}).get("createdByUser", {})
+        if isinstance(user, dict):
+            name = user.get("username", "")
+            if name:
+                contributors.add(name)
+    return sorted(contributors)
 
 def render_table(group_id, items):
     if not items:
@@ -120,6 +140,17 @@ for wg, group_id in GROUPS.items():
 
     for root_key in roots:
         output += render_section(group_id, root_key, collections, children)
+
+    # ── Contributors ─────────────────────────────────────────────────────────
+    all_items    = get_all_items(group_id)
+    contributors = get_contributors(all_items)
+
+    if contributors:
+        output += "\n---\n\n## Contributors\n\n"
+        output += "*The following members have contributed references to this library:*\n\n"
+        for c in contributors:
+            output += f"- [{c}](https://www.zotero.org/{c})\n"
+        output += "\n"
 
     with open(f"docs/{wg}/index.md", "w") as f:
         f.write(output)
