@@ -125,8 +125,8 @@ def render_table(group_id, items):
                     summary = content
                 output += f'<details>\n'
                 output += f'<summary>💬 <b>WG Note:</b> {summary}</summary>\n\n'
-                output += f'{content}\n\n'
-                output += f'*({creator}, {date})*\n\n'
+                output += f'<p>{content}</p>\n'
+                output += f'<p><em>— {creator}, {date}</em></p>\n\n'
                 output += f'</details>\n\n'
 
     return output + "\n"
