@@ -1,10 +1,10 @@
-# State of the Art on AI and Time Series
+# SOTA
 
-**IEEE AI & Time Series Working Group**
+**State of the Art on AI and Time Series**
 
 Public documentation site for the **IEEE AI & Time Series Working Group**, automatically synchronized with Zotero group libraries.
 
-🌐 **Live site:** [aitimeseries.github.io/SOTA](https://aitimeseries.github.io/SOTA/)
+🌐 **Live site:** [aitimeseries.com](https://aitimeseries.com)
 
 ---
 
@@ -12,8 +12,8 @@ Public documentation site for the **IEEE AI & Time Series Working Group**, autom
 
 This repository powers a curated, continuously updated bibliography of state-of-the-art references for the IEEE AI & Time Series Working Group, which develops two standards projects:
 
-- **[IEEE P3579](https://aitimeseries.github.io/SOTA/p3579/)** — AI Systems Applied to Time Series
-- **[IEEE P3998](https://aitimeseries.github.io/SOTA/p3998/)** — Time Series Applied to AI Systems
+- **[IEEE P3579](https://aitimeseries.com/p3579/)** — AI Systems Applied to Time Series
+- **[IEEE P3998](https://aitimeseries.com/p3998/)** — Time Series Applied to AI Systems
 
 References are managed in [Zotero](https://www.zotero.org/) group libraries and automatically published to a static site built with [MkDocs Material](https://squidfund.github.io/mkdocs-material/).
 
@@ -34,7 +34,7 @@ Zotero Group Libraries
   (mkdocs build)           Builds HTML with MkDocs Material
         │                  Deploys to gh-pages branch
         ▼
-  GitHub Pages           → aitimeseries.github.io/SOTA
+  GitHub Pages           → aitimeseries.com
 ```
 
 ## Repository Structure
@@ -112,13 +112,41 @@ python scripts/generate_sota.py
 
 - **Trigger:** Push to `main` or manual dispatch
 - **Action:** Builds the MkDocs site and deploys to the `gh-pages` branch
-- **Site:** Served via GitHub Pages at `aitimeseries.github.io/SOTA`
+- **Site:** Served via GitHub Pages at `aitimeseries.com`
 
 ### Zotero Sync (`sync-zotero.yml`)
 
 - **Trigger:** Weekly (Monday 08:00 UTC) or manual dispatch
 - **Action:** Runs `generate_sota.py`, commits changes, and opens a Pull Request for review
 - **Branch:** Changes are pushed to `zotero-sync` branch
+
+## Custom Domain
+
+The site is served at `aitimeseries.com` via GitHub Pages. The domain also hosts subdomains for the IEEE standards project pages.
+
+### DNS Records
+
+| Type | Host | Value |
+|------|------|-------|
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `aitimeseries.github.io` |
+| CNAME | `p3579` | *(IEEE SA — existing)* |
+| CNAME | `p3998` | *(IEEE SA — pending)* |
+
+### GitHub Pages Configuration
+
+In the repo Settings → Pages:
+- **Source:** Deploy from a branch
+- **Branch:** `gh-pages` / `/ (root)`
+- **Custom domain:** `aitimeseries.com`
+- **Enforce HTTPS:** enabled
+
+### CNAME Persistence
+
+The `deploy.yml` workflow includes `cname: aitimeseries.com` in the `peaceiris/actions-gh-pages` step to ensure the `CNAME` file is preserved on every deployment. Without this, each deploy would overwrite the `gh-pages` branch and remove the custom domain configuration.
 
 ## License
 
