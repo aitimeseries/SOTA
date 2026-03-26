@@ -16,7 +16,9 @@ _No references yet._
 
 ### Algorithms
 
-_No references yet._
+| Authors | Title | Year | DOI |
+|---------|-------|------|-----|
+| — | [Logger — Stable Baselines3 2.8.0a4 documentation](https://stable-baselines3.readthedocs.io/en/master/common/logger.html) |  |  |
 
 ## PUBLICATIONS
 
@@ -31,4 +33,13 @@ _No references yet._
 ### Papers
 
 _No references yet._
+
+
+---
+
+## Contributors
+
+*The following members have contributed references to this library:*
+
+- [jschneerson](https://www.zotero.org/jschneerson)
 
