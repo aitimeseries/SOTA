@@ -1,10 +1,18 @@
 # State of the Art — IEEE P3998
 
+## PATENTS
+
+_No references yet._
+
 ## STANDARDS
 
 _No references yet._
 
 ## RESOURCES
+
+### Models
+
+_No references yet._
 
 ### Datasets
 
