@@ -1,15 +1,35 @@
 # State of the Art — IEEE P3579
 
+## PATENTS
+
+_No references yet._
+
 ## STANDARDS
 
 _No references yet._
 
 ## RESOURCES
 
+### Models
+
 | Authors | Title | Year | DOI | Notes |
 |---------|-------|------|-----|-------|
 | — | <span id="ref-UGU54QGJ">[Time Series Forecasting Models – Hugging Face](https://huggingface.co/models)</span> | 2026 |  | — |
 | — | <span id="ref-6CB8RX6D">[Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets)</span> | 2025 |  | — |
+
+### Frameworks
+
+_No references yet._
+
+### Datasets
+
+| Authors | Title | Year | DOI | Notes |
+|---------|-------|------|-----|-------|
+| — | <span id="ref-6CB8RX6D">[Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets)</span> | 2025 |  | — |
+
+### Algorithms
+
+_No references yet._
 
 ## PUBLICATIONS
 
