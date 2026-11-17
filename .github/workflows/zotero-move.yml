@@ -1,0 +1,87 @@
+name: Move Zotero References
+on:
+  # TEMPORARY (PR #13): lets this branch run before the workflow exists on
+  # main, since a dispatch-only workflow absent from main cannot be
+  # dispatched. Remove before merging.
+  push:
+    branches: [claude/zotero-move]
+    paths:
+      - scripts/zotero_moves.json
+      - scripts/zotero_move.py
+      - .github/workflows/zotero-move.yml
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Apply the moves (also needs "apply": true in the manifest and the zotero-write approval)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zotero-move
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      apply: ${{ steps.flag.outputs.apply }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests==2.32.3
+
+      - name: Dry run (reads only)
+        run: python scripts/zotero_move.py scripts/zotero_moves.json plan
+        env:
+          ZOTERO_API_KEY:              ${{ secrets.ZOTERO_API_KEY }}
+          ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
+          ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
+          ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
+
+      - name: Read the manifest's apply flag
+        id: flag
+        run: |
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json
+          with open("scripts/zotero_moves.json", encoding="utf-8") as f:
+              flag = json.load(f).get("apply") is True
+          print("apply=" + ("true" if flag else "false"))
+          EOF
+
+  apply:
+    needs: plan
+    # The manifest must say "apply": true, AND the run must be the temporary
+    # push or a dispatch with apply checked. Then the zotero-write
+    # Environment waits for its required reviewer.
+    if: needs.plan.outputs.apply == 'true' && (github.event_name == 'push' || inputs.apply)
+    runs-on: ubuntu-latest
+    environment: zotero-write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5.4.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests==2.32.3
+
+      - name: Apply the moves
+        run: python scripts/zotero_move.py scripts/zotero_moves.json apply
+        env:
+          ZOTERO_WRITE_API_KEY:        ${{ secrets.ZOTERO_WRITE_API_KEY }}
+          ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
+          ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
+          ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
