@@ -129,8 +129,8 @@ Moves references from one group library to another (for example, a reference tha
 How to run a batch:
 
 1. List the moves in `scripts/zotero_moves.json` and leave `"apply": false`. Each entry gives `source` and `target` (`p3579`, `p3998` or `p3579-p3998`), the item `key`, its exact `title`, and `to`, the target collection paths, such as `RESOURCES/Models`. An item with attachments (e.g. a web-page snapshot) is refused unless its entry says `"attachments": "leave"`: the copy is then made without them, and they stay only with the source item in its group's trash, so they are lost when that trash is emptied.
-2. Dispatch the workflow without `apply`: the `plan` job reads only and prints what would be written. A dispatch with `--ref <branch>` runs that branch's manifest and script.
-3. Set `"apply": true`, then dispatch again with `apply` checked. The `apply` job runs in the `zotero-write` Environment and waits for its required reviewer's approval.
+2. Dispatch the workflow without `apply`: the `plan` job reads only and prints what would be written. A dispatch with `--ref <branch>` runs that branch's manifest and script, for the dry run only.
+3. Set `"apply": true` and bring it to `main` through a reviewed pull request, then dispatch on `main` with `apply` checked. The `apply` job runs in the `zotero-write` Environment, which accepts jobs from `main` only, and waits for its required reviewer's approval: read the same run's `plan` log first, and reject if it differs from the reviewed dry run. (To apply from another branch, the Environment needs a temporary branch policy for it, removed afterwards.)
 4. Reset the manifest to `"apply": false` with an empty `moves` list. Git keeps the history of what was moved.
 
 Guards: the run stops if a title differs from the manifest, if an item has attachments and its entry does not say `"attachments": "leave"`, if a target collection is not a leaf (references filed on a collection with sub-collections are not published), or if a copy does not match its source. A reference already moved (source in the trash and a verified copy in the target) is skipped.
