@@ -43,14 +43,17 @@ Zotero Group Libraries
 SOTA/
 ├── .github/workflows/
 │   ├── deploy.yml           # Build & deploy site to GitHub Pages
-│   └── sync-zotero.yml      # Fetch references from Zotero → open PR
+│   ├── sync-zotero.yml      # Fetch references from Zotero → open PR
+│   └── zotero-move.yml      # Move references between groups (dry run, then apply)
 ├── docs/
 │   ├── index.md             # Home page
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
 │   └── p3579-p3998/index.md # References common to P3579 & P3998 (auto-generated)
 ├── scripts/
-│   └── generate_sota.py     # Zotero API sync script
+│   ├── generate_sota.py     # Zotero API sync script
+│   ├── zotero_move.py       # Move script (copy, verify, trash)
+│   └── zotero_moves.json    # Moves manifest (reviewed like code)
 ├── mkdocs.yml               # MkDocs configuration
 └── README.md
 ```
@@ -69,7 +72,7 @@ References are organized in Zotero group libraries (one per standards project, p
 
 To add a new reference, simply add it to the appropriate Zotero group library and collection. The next sync will pick it up automatically, or you can trigger the workflow manually from the Actions tab.
 
-A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages.
+A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages. See [Move Zotero References](#move-zotero-references-zotero-moveyml) for the reviewed way to do it.
 
 ## Setup
 
@@ -124,6 +127,25 @@ python scripts/generate_sota.py
 - **Trigger:** Weekly (Monday 08:00 UTC) or manual dispatch
 - **Action:** Runs `generate_sota.py`, commits changes, and opens a Pull Request for review
 - **Branch:** Changes are pushed to `zotero-sync` branch
+
+### Move Zotero References (`zotero-move.yml`)
+
+Moves references from one group library to another (for example, a reference that turns out to be common to both projects, from P3579 to the joint library). Zotero has no move between libraries, so for each reference `scripts/zotero_move.py`:
+
+1. copies it, with its notes, into the target group's collections;
+2. verifies the copy: every field equal to the source's (except key, version, collections, relations and dates), the target collections, the same notes, and no other child;
+3. sends the source item to the source group's **trash**, where it can be restored. The tool never deletes.
+
+How to run a batch:
+
+1. List the moves in `scripts/zotero_moves.json` and leave `"apply": false`. Each entry gives `source` and `target` (`p3579`, `p3998` or `p3579-p3998`), the item `key`, its exact `title`, and `to`, the target collection paths, such as `RESOURCES/Models`. An item with attachments (e.g. a web-page snapshot) is refused unless its entry says `"attachments": "leave"`: the copy is then made without them, and they stay only with the source item in its group's trash, so they are lost when that trash is emptied.
+2. Dispatch the workflow without `apply`: the `plan` job reads only and prints what would be written. A dispatch with `--ref <branch>` runs that branch's manifest and script, for the dry run only.
+3. Set `"apply": true` and bring it to `main` through a reviewed pull request, then dispatch on `main` with `apply` checked. The `apply` job runs in the `zotero-write` Environment, which accepts jobs from `main` only, and waits for its required reviewer's approval: read the same run's `plan` log first, and reject if it differs from the reviewed dry run. (To apply from another branch, the Environment needs a temporary branch policy for it, removed afterwards.)
+4. Reset the manifest to `"apply": false` with an empty `moves` list. Git keeps the history of what was moved.
+
+Guards: the run stops if a title differs from the manifest, if an item has attachments and its entry does not say `"attachments": "leave"`, if a target collection is not a leaf (references filed on a collection with sub-collections are not published), or if a copy does not match its source. A reference already moved (source in the trash and a verified copy in the target) is skipped.
+
+Keys: the `plan` job reads with `ZOTERO_API_KEY`, which needs read access only. The `apply` job writes with `ZOTERO_WRITE_API_KEY`, a secret of the `zotero-write` Environment, which needs write access to the site's groups only.
 
 ## Custom Domain
 
