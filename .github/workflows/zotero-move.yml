@@ -40,6 +40,8 @@ jobs:
       - name: Install dependencies
         run: pip install requests==2.32.3
 
+      # Never continue-on-error: it turns a red dry run into a green plan job
+      # and lets apply run.
       - name: Dry run (reads only)
         run: python -u scripts/zotero_move.py scripts/zotero_moves.json plan
         env:
@@ -65,6 +67,8 @@ jobs:
     # The manifest must say "apply": true, AND the run must be the temporary
     # push or a dispatch with apply checked. Then the zotero-write
     # Environment waits for its required reviewer.
+    # No status function here (always(), !cancelled(), failure()): a failed
+    # plan job must skip apply.
     if: needs.plan.outputs.apply == 'true' && (github.event_name == 'push' || inputs.apply)
     runs-on: ubuntu-latest
     environment: zotero-write
