@@ -57,6 +57,14 @@ def build_hierarchy(collections):
             roots.append(key)
         else:
             children.setdefault(parent, []).append(key)
+
+    # Sections in alphabetical order at every level (the API order is not).
+    def by_name(key):
+        return collections[key]["name"].casefold()
+
+    roots.sort(key=by_name)
+    for sub_keys in children.values():
+        sub_keys.sort(key=by_name)
     return roots, children
 
 def get_items(group_id, col_key):
