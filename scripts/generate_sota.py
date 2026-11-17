@@ -115,7 +115,7 @@ def clean_note(html_note):
     import re
     return re.sub(r'<[^>]+>', '', html_note).strip()
 
-def render_table(group_id, items):
+def render_table(group_id, items, published=None):
     if not items:
         return "_No references yet._\n\n"
 
@@ -131,6 +131,8 @@ def render_table(group_id, items):
     for item in items:
         d        = item.get("data", {})
         item_key = item["data"]["key"]
+        if published is not None:
+            published[item_key] = item
         authors  = ", ".join(
             a.get("lastName", "") for a in d.get("creators", [])
         ) or "—"
@@ -178,7 +180,7 @@ def render_table(group_id, items):
 
     return output
 
-def render_section(group_id, col_key, collections, children, depth=2):
+def render_section(group_id, col_key, collections, children, depth=2, published=None):
     col     = collections[col_key]
     name    = col["name"]
     heading = "#" * depth
@@ -189,15 +191,90 @@ def render_section(group_id, col_key, collections, children, depth=2):
     if sub_keys:
         for sub_key in sub_keys:
             output += render_section(
-                group_id, sub_key, collections, children, depth + 1
+                group_id, sub_key, collections, children, depth + 1, published
             )
     else:
         items = get_items(group_id, col_key)
-        output += render_table(group_id, items)
+        output += render_table(group_id, items, published)
 
     return output
 
+# ── Latest updates on the home page ─────────────────────────────────────────
+LATEST_COUNT = 5     # references per project on the home page
+TITLE_MAX    = 60    # characters per title on the home page, "…" included
+
+def shorten(title, limit=TITLE_MAX):
+    """Cut a title to `limit` characters at a word boundary, ending with "…"."""
+    if len(title) <= limit:
+        return title
+    head = title[:limit]
+    if " " in head:
+        # The last space within the first `limit` characters: the words
+        # before it fit in limit - 1 characters, leaving room for "…".
+        cut = head[:head.rfind(" ")]
+    else:
+        cut = title[:limit - 1]
+    return cut.rstrip(" ,;:.-–—") + "…"
+
+def render_latest(wg, published):
+    """The LATEST_COUNT most recently modified references published on the
+    page of `wg` (all sections together), as a table for the home page.
+    An edit of a field or a tag counts as a modification; a change of
+    collection alone does not, from any client (Zotero skips the dateModified
+    update)."""
+    items = sorted(
+        published.values(),
+        key=lambda i: i.get("data", {}).get("dateModified", ""),
+        reverse=True,
+    )[:LATEST_COUNT]
+    if not items:
+        return "_No references yet._\n"
+    output  = "**Latest updates**\n\n"
+    output += "| Updated | Reference | Contributor |\n"
+    output += "|---------|-----------|-------------|\n"
+    for item in items:
+        d     = item.get("data", {})
+        meta  = item.get("meta", {})
+        title = d.get("title") or "—"
+        text  = shorten(title).replace("[", "(").replace("]", ")").replace("|", "\\|")
+        hover = title.replace('"', "'").replace("|", "\\|")
+        # Who made the last change; Zotero reports it for group items, and the
+        # creator stands in when it does not.
+        user  = meta.get("lastModifiedByUser") or meta.get("createdByUser") or {}
+        name  = user.get("username") or user.get("name", "") if isinstance(user, dict) else ""
+        who   = f"[{name}](https://www.zotero.org/{name})" if name else "—"
+        when  = d.get("dateModified", "")[:10] or "—"
+        output += f'| {when} | [{text}]({wg}/index.md#ref-{d["key"]} "{hover}") | {who} |\n'
+    return output
+
+def update_home(blocks, path="docs/index.md"):
+    """Replace what sits between <!-- latest:<wg> --> and <!-- /latest:<wg> -->
+    in the home page. A page without the markers is left as it is."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    updated, skipped = [], []
+    for wg, block in blocks.items():
+        start, end = f"<!-- latest:{wg} -->", f"<!-- /latest:{wg} -->"
+        if text.count(start) != 1 or text.count(end) != 1 or text.index(start) > text.index(end):
+            # A GitHub Actions annotation: shown on the run page, the run stays
+            # green so the project pages still get their weekly update.
+            print(f"::warning file={path}::no single {start} ... {end} pair: "
+                  f"the {wg} latest-updates block was not updated")
+            skipped.append(wg)
+            continue
+        before, rest = text.split(start, 1)
+        _, after = rest.split(end, 1)
+        # Blank lines around the block: an HTML comment line would otherwise
+        # swallow the Markdown right after it.
+        text = before + start + "\n\n" + block.rstrip("\n") + "\n\n" + end + after
+        updated.append(wg)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"Updated {path} (latest updates: {', '.join(updated) or 'none'}"
+          f"{'; NOT updated: ' + ', '.join(skipped) if skipped else ''})")
+
 # ── Main ─────────────────────────────────────────────────────────────────────
+latest_blocks = {}
 for wg, (group_id, label) in GROUPS.items():
     output = f"# State of the Art — {label}\n\n"
     intro = INTROS.get(wg)
@@ -207,8 +284,10 @@ for wg, (group_id, label) in GROUPS.items():
     collections     = get_all_collections(group_id)
     roots, children = build_hierarchy(collections)
 
+    published = {}
     for root_key in roots:
-        output += render_section(group_id, root_key, collections, children)
+        output += render_section(group_id, root_key, collections, children, published=published)
+    latest_blocks[wg] = render_latest(wg, published)
 
     # Contributors section
     all_items    = get_all_items(group_id)
@@ -224,3 +303,5 @@ for wg, (group_id, label) in GROUPS.items():
     with open(f"docs/{wg}/index.md", "w") as f:
         f.write(output)
     print(f"Generated docs/{wg}/index.md")
+
+update_home(latest_blocks)
