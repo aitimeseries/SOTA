@@ -43,14 +43,17 @@ Zotero Group Libraries
 SOTA/
 ├── .github/workflows/
 │   ├── deploy.yml           # Build & deploy site to GitHub Pages
-│   └── sync-zotero.yml      # Fetch references from Zotero → open PR
+│   ├── sync-zotero.yml      # Fetch references from Zotero → open PR
+│   └── zotero-move.yml      # Move references between groups (dry run, then apply)
 ├── docs/
 │   ├── index.md             # Home page
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
 │   └── p3579-p3998/index.md # References common to P3579 & P3998 (auto-generated)
 ├── scripts/
-│   └── generate_sota.py     # Zotero API sync script
+│   ├── generate_sota.py     # Zotero API sync script
+│   ├── zotero_move.py       # Move script (copy, verify, trash)
+│   └── zotero_moves.json    # Moves manifest (reviewed like code)
 ├── mkdocs.yml               # MkDocs configuration
 └── README.md
 ```
@@ -69,7 +72,7 @@ References are organized in Zotero group libraries (one per standards project, p
 
 To add a new reference, simply add it to the appropriate Zotero group library and collection. The next sync will pick it up automatically, or you can trigger the workflow manually from the Actions tab.
 
-A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages.
+A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages. See [Move Zotero References](#move-zotero-references-zotero-moveyml) for the reviewed way to do it.
 
 ## Setup
 
