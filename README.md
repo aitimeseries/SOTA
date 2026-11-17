@@ -46,7 +46,7 @@ SOTA/
 │   ├── sync-zotero.yml      # Fetch references from Zotero → open PR
 │   └── zotero-move.yml      # Move references between groups (dry run, then apply)
 ├── docs/
-│   ├── index.md             # Home page (its "latest additions" blocks, between the <!-- latest:… --> markers, are rewritten by the sync: do not edit them by hand)
+│   ├── index.md             # Home page (its "latest updates" blocks, between the <!-- latest:… --> markers, are rewritten by the sync: do not edit them by hand)
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
 │   └── p3579-p3998/index.md # References common to P3579 & P3998 (auto-generated)
