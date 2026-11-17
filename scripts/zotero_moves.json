@@ -1,5 +1,5 @@
 {
-  "apply": false,
+  "apply": true,
   "moves": [
     {
       "source": "p3579",
