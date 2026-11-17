@@ -219,9 +219,9 @@ def shorten(title, limit=TITLE_MAX):
 def render_latest(wg, published):
     """The LATEST_COUNT most recently modified references published on the
     page of `wg` (all sections together), as a table for the home page.
-    An edit of a field or a tag counts as a modification; filing the item into
-    a collection or out of it from Zotero desktop does not (it skips the
-    dateModified update)."""
+    An edit of a field or a tag counts as a modification; a change of
+    collection alone does not, from any client (Zotero skips the dateModified
+    update)."""
     items = sorted(
         published.values(),
         key=lambda i: i.get("data", {}).get("dateModified", ""),
