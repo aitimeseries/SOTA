@@ -41,7 +41,7 @@ jobs:
         run: pip install requests==2.32.3
 
       - name: Dry run (reads only)
-        run: python scripts/zotero_move.py scripts/zotero_moves.json plan
+        run: python -u scripts/zotero_move.py scripts/zotero_moves.json plan
         env:
           ZOTERO_API_KEY:              ${{ secrets.ZOTERO_API_KEY }}
           ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
@@ -79,7 +79,7 @@ jobs:
         run: pip install requests==2.32.3
 
       - name: Apply the moves
-        run: python scripts/zotero_move.py scripts/zotero_moves.json apply
+        run: python -u scripts/zotero_move.py scripts/zotero_moves.json apply
         env:
           ZOTERO_WRITE_API_KEY:        ${{ secrets.ZOTERO_WRITE_API_KEY }}
           ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
