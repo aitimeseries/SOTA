@@ -8,7 +8,12 @@ Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG
 
 <!-- latest:p3579 -->
 
-_Latest additions appear here after the next Zotero sync._
+**Latest additions**
+
+| Added | Reference | Contributor |
+|-------|-----------|-------------|
+| 2026-03-25 | [Artificial Intelligence Algorithm for Optimal Time Series…](p3579/index.md#ref-7AH99IWN "Artificial Intelligence Algorithm for Optimal Time Series Data Model") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-03-25 | [Explainable AI for Time Series Classification: A Review…](p3579/index.md#ref-NJNFHFNK "Explainable AI for Time Series Classification: A Review, Taxonomy and Research Directions") | [jschneerson](https://www.zotero.org/jschneerson) |
 
 <!-- /latest:p3579 -->
 
@@ -19,7 +24,12 @@ _Latest additions appear here after the next Zotero sync._
 
 <!-- latest:p3998 -->
 
-_Latest additions appear here after the next Zotero sync._
+**Latest additions**
+
+| Added | Reference | Contributor |
+|-------|-----------|-------------|
+| 2026-03-26 | [A2C — Logger — Stable Baselines3 2.8.0a4 documentation](p3998/index.md#ref-Z6TDV2T2 "A2C — Logger — Stable Baselines3 2.8.0a4 documentation") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-03-26 | [PPO — Logger — Stable Baselines3 2.8.0a4 documentation](p3998/index.md#ref-FCNVJ24Q "PPO — Logger — Stable Baselines3 2.8.0a4 documentation") | [jschneerson](https://www.zotero.org/jschneerson) |
 
 <!-- /latest:p3998 -->
 
@@ -30,7 +40,12 @@ _Latest additions appear here after the next Zotero sync._
 
 <!-- latest:p3579-p3998 -->
 
-_Latest additions appear here after the next Zotero sync._
+**Latest additions**
+
+| Added | Reference | Contributor |
+|-------|-----------|-------------|
+| 2026-11-17 | [Chronos Models & Datasets - a amazon Collection](p3579-p3998/index.md#ref-DZIB9UFG "Chronos Models & Datasets - a amazon Collection") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-17 | [Time Series Forecasting Models – Hugging Face](p3579-p3998/index.md#ref-KWVBACRU "Time Series Forecasting Models – Hugging Face") | [jschneerson](https://www.zotero.org/jschneerson) |
 
 <!-- /latest:p3579-p3998 -->
 
