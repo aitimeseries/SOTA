@@ -45,7 +45,7 @@ MOVE_FIELDS = ("source", "target", "key", "title", "to")
 
 # Per-move "attachments" policy. Absent: any attachment stops the run.
 # "leave": copy without the attachments, which stay with the source item
-# (and go to the trash with it).
+# (they stay with it when it goes to the trash).
 ATTACHMENT_POLICIES = {"leave"}
 
 
@@ -287,7 +287,7 @@ def move_one(s, move, mode, cols_cache, n, total):
             raise MoveError(f"{key} has attachments ({dict(kinds)}): not handled "
                             '(set "attachments": "leave" to copy without them)')
         print(f"  attachments: {kinds['attachment']} left with the source item "
-              '("attachments": "leave"); they go to the trash with it')
+              '("attachments": "leave"); they stay with the trashed source item')
     notes = [c["data"] for c in children if c["data"]["itemType"] == "note"]
 
     existing = find_top_by_title(s, dst_gid, title)
