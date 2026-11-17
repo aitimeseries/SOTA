@@ -246,19 +246,26 @@ def update_home(blocks, path="docs/index.md"):
     in the home page. A page without the markers is left as it is."""
     with open(path, encoding="utf-8") as f:
         text = f.read()
+    updated, skipped = [], []
     for wg, block in blocks.items():
         start, end = f"<!-- latest:{wg} -->", f"<!-- /latest:{wg} -->"
         if text.count(start) != 1 or text.count(end) != 1 or text.index(start) > text.index(end):
-            print(f"WARNING: {path} has no single {start} ... {end} pair: block not updated")
+            # A GitHub Actions annotation: shown on the run page, the run stays
+            # green so the project pages still get their weekly update.
+            print(f"::warning file={path}::no single {start} ... {end} pair: "
+                  f"the {wg} latest-additions block was not updated")
+            skipped.append(wg)
             continue
         before, rest = text.split(start, 1)
         _, after = rest.split(end, 1)
         # Blank lines around the block: an HTML comment line would otherwise
         # swallow the Markdown right after it.
         text = before + start + "\n\n" + block.rstrip("\n") + "\n\n" + end + after
+        updated.append(wg)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
-    print(f"Updated {path} (latest additions: {', '.join(blocks)})")
+    print(f"Updated {path} (latest additions: {', '.join(updated) or 'none'}"
+          f"{'; NOT updated: ' + ', '.join(skipped) if skipped else ''})")
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 latest_blocks = {}
