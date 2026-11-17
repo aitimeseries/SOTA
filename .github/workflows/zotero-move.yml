@@ -1,14 +1,5 @@
 name: Move Zotero References
 on:
-  # TEMPORARY (PR #13): lets this branch run before the workflow exists on
-  # main, since a dispatch-only workflow absent from main cannot be
-  # dispatched. Remove before merging.
-  push:
-    branches: [claude/zotero-move]
-    paths:
-      - scripts/zotero_moves.json
-      - scripts/zotero_move.py
-      - .github/workflows/zotero-move.yml
   workflow_dispatch:
     inputs:
       apply:
@@ -64,12 +55,12 @@ jobs:
 
   apply:
     needs: plan
-    # The manifest must say "apply": true, AND the run must be the temporary
-    # push or a dispatch with apply checked. Then the zotero-write
-    # Environment waits for its required reviewer.
+    # The manifest must say "apply": true, AND the dispatch must have apply
+    # checked. Then the zotero-write Environment (main only) waits for its
+    # required reviewer.
     # No status function here (always(), !cancelled(), failure()): a failed
     # plan job must skip apply.
-    if: needs.plan.outputs.apply == 'true' && (github.event_name == 'push' || inputs.apply)
+    if: needs.plan.outputs.apply == 'true' && inputs.apply
     runs-on: ubuntu-latest
     environment: zotero-write
     steps:
