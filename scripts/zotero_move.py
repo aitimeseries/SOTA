@@ -276,7 +276,8 @@ def move_one(s, move, mode, cols_cache, n, total):
     for c in children:
         cd = c["data"]
         if cd["itemType"] == "attachment":
-            print(f"  attachment {cd.get('key')}: linkMode={cd.get('linkMode')}, "
+            print(f"  attachment {cd.get('key')}: deleted={bool(cd.get('deleted'))}, "
+                  f"linkMode={cd.get('linkMode')}, "
                   f"contentType={cd.get('contentType')}, filename={cd.get('filename')!r}, "
                   f"title={cd.get('title')!r}, url={cd.get('url')!r}")
     if set(kinds) - {"note", "attachment"}:
