@@ -1,26 +1,26 @@
 # State of the Art — IEEE P3998
 
+*See also the [references common to P3579 and P3998](../p3579-p3998/index.md).*
+
 ## PATENTS
 
 _No references yet._
 
-## STANDARDS
+## PUBLICATIONS
+
+### Papers
+
+_No references yet._
+
+### Patents
+
+_No references yet._
+
+### Reports
 
 _No references yet._
 
 ## RESOURCES
-
-### Models
-
-_No references yet._
-
-### Datasets
-
-_No references yet._
-
-### Frameworks
-
-_No references yet._
 
 ### Algorithms
 
@@ -51,17 +51,19 @@ P3579 standardizes how AIS consume external time series; P3998 addresses the com
 
 </details>
 
-## PUBLICATIONS
-
-### Reports
+### Datasets
 
 _No references yet._
 
-### Patents
+### Frameworks
 
 _No references yet._
 
-### Papers
+### Models
+
+_No references yet._
+
+## STANDARDS
 
 _No references yet._
 

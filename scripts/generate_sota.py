@@ -1,12 +1,43 @@
-import requests, os, json
+import requests, os, json, sys
+
+# slug -> (environment variable holding the Zotero group ID, page label).
+# The slug is the docs/ folder and the URL path of the page.
+GROUP_ENV = {
+    "p3579":       ("ZOTERO_GROUP_ID_P3579",       "IEEE P3579"),
+    "p3998":       ("ZOTERO_GROUP_ID_P3998",       "IEEE P3998"),
+    "p3579-p3998": ("ZOTERO_GROUP_ID_P3579_P3998", "IEEE P3579 & P3998 (Joint)"),
+}
+
+# In a workflow, an unset secret is an empty string, not a missing variable:
+# fail early and name the secret, instead of a JSONDecodeError on Zotero's
+# text/html error page.
+REQUIRED_ENV = ["ZOTERO_API_KEY"] + [env for env, _ in GROUP_ENV.values()]
+missing = [env for env in REQUIRED_ENV if not os.environ.get(env)]
+if missing:
+    sys.exit(f"Missing or empty: {', '.join(missing)} (set the repository secret)")
 
 API_KEY  = os.environ["ZOTERO_API_KEY"]
 HEADERS  = {"Zotero-API-Key": API_KEY}
 BASE_URL = "https://api.zotero.org"
 
 GROUPS = {
-    "p3579": os.environ["ZOTERO_GROUP_ID_P3579"],
-    "p3998": os.environ["ZOTERO_GROUP_ID_P3998"],
+    slug: (os.environ[env], label) for slug, (env, label) in GROUP_ENV.items()
+}
+
+# Intro line under each page title. The pages are regenerated at each sync:
+# edit the text here, never in docs/.
+JOINT_LINK = (
+    "*See also the [references common to P3579 and P3998]"
+    "(../p3579-p3998/index.md).*"
+)
+INTROS = {
+    "p3579": JOINT_LINK,
+    "p3998": JOINT_LINK,
+    "p3579-p3998": (
+        "References common to both IEEE P3579 and IEEE P3998. "
+        "Project-specific references are listed on the "
+        "[P3579](../p3579/index.md) and [P3998](../p3998/index.md) pages."
+    ),
 }
 
 def get_all_collections(group_id):
@@ -26,6 +57,14 @@ def build_hierarchy(collections):
             roots.append(key)
         else:
             children.setdefault(parent, []).append(key)
+
+    # Sections in alphabetical order at every level (the API order is not).
+    def by_name(key):
+        return collections[key]["name"].casefold()
+
+    roots.sort(key=by_name)
+    for sub_keys in children.values():
+        sub_keys.sort(key=by_name)
     return roots, children
 
 def get_items(group_id, col_key):
@@ -159,9 +198,11 @@ def render_section(group_id, col_key, collections, children, depth=2):
     return output
 
 # ── Main ─────────────────────────────────────────────────────────────────────
-for wg, group_id in GROUPS.items():
-    label = "P3579" if wg == "p3579" else "P3998"
-    output = f"# State of the Art — IEEE {label}\n\n"
+for wg, (group_id, label) in GROUPS.items():
+    output = f"# State of the Art — {label}\n\n"
+    intro = INTROS.get(wg)
+    if intro:
+        output += f"{intro}\n\n"
 
     collections     = get_all_collections(group_id)
     roots, children = build_hierarchy(collections)
@@ -179,6 +220,7 @@ for wg, group_id in GROUPS.items():
             output += f"- [{c}](https://www.zotero.org/{c})\n"
         output += "\n"
 
+    os.makedirs(f"docs/{wg}", exist_ok=True)
     with open(f"docs/{wg}/index.md", "w") as f:
         f.write(output)
     print(f"Generated docs/{wg}/index.md")

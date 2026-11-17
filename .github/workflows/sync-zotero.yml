@@ -26,9 +26,10 @@ jobs:
       - name: Run Zotero sync script
         run: python scripts/generate_sota.py
         env:
-          ZOTERO_API_KEY:         ${{ secrets.ZOTERO_API_KEY }}
-          ZOTERO_GROUP_ID_P3579:  ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
-          ZOTERO_GROUP_ID_P3998:  ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
+          ZOTERO_API_KEY:              ${{ secrets.ZOTERO_API_KEY }}
+          ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
+          ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
+          ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
 
       - name: Open Pull Request if changes
         uses: peter-evans/create-pull-request@v7
