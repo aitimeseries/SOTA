@@ -199,7 +199,7 @@ def render_section(group_id, col_key, collections, children, depth=2, published=
 
     return output
 
-# ── Latest additions on the home page ───────────────────────────────────────
+# ── Latest updates on the home page ─────────────────────────────────────────
 LATEST_COUNT = 5     # references per project on the home page
 TITLE_MAX    = 60    # characters per title on the home page, "…" included
 
@@ -217,28 +217,32 @@ def shorten(title, limit=TITLE_MAX):
     return cut.rstrip(" ,;:.-–—") + "…"
 
 def render_latest(wg, published):
-    """The LATEST_COUNT most recently added references published on the page
-    of `wg` (all sections together), as a table for the home page."""
+    """The LATEST_COUNT most recently modified references published on the
+    page of `wg` (all sections together), as a table for the home page.
+    Any edit in Zotero (a field, a tag, a collection) counts as a modification."""
     items = sorted(
         published.values(),
-        key=lambda i: i.get("data", {}).get("dateAdded", ""),
+        key=lambda i: i.get("data", {}).get("dateModified", ""),
         reverse=True,
     )[:LATEST_COUNT]
     if not items:
         return "_No references yet._\n"
-    output  = "**Latest additions**\n\n"
-    output += "| Added | Reference | Contributor |\n"
-    output += "|-------|-----------|-------------|\n"
+    output  = "**Latest updates**\n\n"
+    output += "| Updated | Reference | Contributor |\n"
+    output += "|---------|-----------|-------------|\n"
     for item in items:
         d     = item.get("data", {})
+        meta  = item.get("meta", {})
         title = d.get("title") or "—"
         text  = shorten(title).replace("[", "(").replace("]", ")").replace("|", "\\|")
         hover = title.replace('"', "'").replace("|", "\\|")
-        user  = item.get("meta", {}).get("createdByUser", {})
+        # Who made the last change; Zotero reports it for group items, and the
+        # creator stands in when it does not.
+        user  = meta.get("lastModifiedByUser") or meta.get("createdByUser") or {}
         name  = user.get("username") or user.get("name", "") if isinstance(user, dict) else ""
         who   = f"[{name}](https://www.zotero.org/{name})" if name else "—"
-        added = d.get("dateAdded", "")[:10] or "—"
-        output += f'| {added} | [{text}]({wg}/index.md#ref-{d["key"]} "{hover}") | {who} |\n'
+        when  = d.get("dateModified", "")[:10] or "—"
+        output += f'| {when} | [{text}]({wg}/index.md#ref-{d["key"]} "{hover}") | {who} |\n'
     return output
 
 def update_home(blocks, path="docs/index.md"):
@@ -253,7 +257,7 @@ def update_home(blocks, path="docs/index.md"):
             # A GitHub Actions annotation: shown on the run page, the run stays
             # green so the project pages still get their weekly update.
             print(f"::warning file={path}::no single {start} ... {end} pair: "
-                  f"the {wg} latest-additions block was not updated")
+                  f"the {wg} latest-updates block was not updated")
             skipped.append(wg)
             continue
         before, rest = text.split(start, 1)
@@ -264,7 +268,7 @@ def update_home(blocks, path="docs/index.md"):
         updated.append(wg)
     with open(path, "w", encoding="utf-8") as f:
         f.write(text)
-    print(f"Updated {path} (latest additions: {', '.join(updated) or 'none'}"
+    print(f"Updated {path} (latest updates: {', '.join(updated) or 'none'}"
           f"{'; NOT updated: ' + ', '.join(skipped) if skipped else ''})")
 
 # ── Main ─────────────────────────────────────────────────────────────────────
