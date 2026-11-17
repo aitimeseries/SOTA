@@ -118,6 +118,25 @@ python scripts/generate_sota.py
 - **Action:** Runs `generate_sota.py`, commits changes, and opens a Pull Request for review
 - **Branch:** Changes are pushed to `zotero-sync` branch
 
+### Move Zotero References (`zotero-move.yml`)
+
+Moves references from one group library to another (for example, a reference that turns out to be common to both projects, from P3579 to the joint library). Zotero has no move between libraries, so for each reference `scripts/zotero_move.py`:
+
+1. copies it, with its notes, into the target group's collections;
+2. verifies the copy (title, type, URL, creators, collections, notes);
+3. sends the source item to the source group's **trash**, where it can be restored. The tool never deletes.
+
+How to run a batch:
+
+1. List the moves in `scripts/zotero_moves.json` and leave `"apply": false`. Each entry gives `source` and `target` (`p3579`, `p3998` or `p3579-p3998`), the item `key`, its exact `title`, and `to`, the target collection paths, such as `RESOURCES/Models`.
+2. Dispatch the workflow without `apply`: the `plan` job reads only and prints what would be written. A dispatch with `--ref <branch>` runs that branch's manifest and script.
+3. Set `"apply": true`, then dispatch again with `apply` checked. The `apply` job runs in the `zotero-write` Environment and waits for its required reviewer's approval.
+4. Reset the manifest to `"apply": false` with an empty `moves` list. Git keeps the history of what was moved.
+
+Guards: the run stops if a title differs from the manifest, if an item has attachments, if a target collection is not a leaf (references filed on a collection with sub-collections are not published), or if a copy does not match its source. A reference already moved (source in the trash and a verified copy in the target) is skipped.
+
+Keys: the `plan` job reads with `ZOTERO_API_KEY`, which needs read access only. The `apply` job writes with `ZOTERO_WRITE_API_KEY`, a secret of the `zotero-write` Environment, which needs write access to the site's groups only.
+
 ## Custom Domain
 
 The site is served at `aitimeseries.com` via GitHub Pages. The domain also hosts subdomains for the IEEE standards project pages.
