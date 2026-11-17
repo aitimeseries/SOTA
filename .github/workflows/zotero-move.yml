@@ -48,6 +48,8 @@ jobs:
           ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
           ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
 
+      # Must stay after the dry run, without if: always() / continue-on-error:
+      # a red dry run leaves the output empty, so apply is skipped.
       - name: Read the manifest's apply flag
         id: flag
         run: |
