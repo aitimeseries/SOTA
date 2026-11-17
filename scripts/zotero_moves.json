@@ -6,14 +6,16 @@
       "target": "p3579-p3998",
       "key": "UGU54QGJ",
       "title": "Time Series Forecasting Models – Hugging Face",
-      "to": ["RESOURCES/Models"]
+      "to": ["RESOURCES/Models"],
+      "attachments": "leave"
     },
     {
       "source": "p3579",
       "target": "p3579-p3998",
       "key": "6CB8RX6D",
       "title": "Chronos Models & Datasets - a amazon Collection",
-      "to": ["RESOURCES/Models", "RESOURCES/Datasets"]
+      "to": ["RESOURCES/Models", "RESOURCES/Datasets"],
+      "attachments": "leave"
     }
   ]
 }
