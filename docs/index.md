@@ -12,6 +12,9 @@ Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG
 - [View SOTA →](p3998/index.md)
 - [Join at IEEE SA →](http://p3998.aitimeseries.com)
 
+### Joint P3579 & P3998 – References common to both projects
+- [View SOTA →](p3579-p3998/index.md)
+
 ---
 
 *This site is automatically updated from [Zotero](https://www.zotero.org) and published via [GitHub](https://github.com/aitimeseries).*
