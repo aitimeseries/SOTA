@@ -38,7 +38,15 @@ DROP_FIELDS = {
     "dateAdded", "dateModified", "deleted", "parentItem",
 }
 
+# The copy must equal its source on every field except these.
+COPY_DIFF_OK = DROP_FIELDS
+
 MOVE_FIELDS = ("source", "target", "key", "title", "to")
+
+# Per-move "attachments" policy. Absent: any attachment stops the run.
+# "leave": copy without the attachments, which stay with the source item
+# (and go to the trash with it).
+ATTACHMENT_POLICIES = {"leave"}
 
 
 class MoveError(Exception):
@@ -147,6 +155,9 @@ def check_move_fields(move):
         raise MoveError(f"manifest entry {move['key']}: 'to' must be a list of paths")
     if move["source"] == move["target"]:
         raise MoveError(f"manifest entry {move['key']}: source and target are the same group")
+    if "attachments" in move and move["attachments"] not in ATTACHMENT_POLICIES:
+        raise MoveError(f"manifest entry {move['key']}: attachments must be one of "
+                        f"{sorted(ATTACHMENT_POLICIES)} or absent")
 
 
 def collection_path(cols, key):
@@ -177,17 +188,26 @@ def resolve_targets(cols, paths):
     return keys
 
 
-def verify_copy(s, gid, copy_key, src, want_cols, n_notes):
+def note_signature(note_data):
+    return (note_data.get("note", ""), json.dumps(note_data.get("tags", []), sort_keys=True))
+
+
+def verify_copy(s, gid, copy_key, src, want_cols, src_notes):
+    """The copy must equal its source on every field but COPY_DIFF_OK,
+    sit in exactly the resolved collections, and carry the same notes."""
     copy = get_item(s, gid, copy_key)["data"]
-    problems = [f for f in ("title", "itemType", "url", "creators")
-                if copy.get(f) != src.get(f)]
+    fields = (set(src) | set(copy)) - COPY_DIFF_OK
+    problems = [f"field {f!r}" for f in sorted(fields) if copy.get(f) != src.get(f)]
     if sorted(copy.get("collections", [])) != sorted(want_cols):
         problems.append(f"collections {copy.get('collections')} != {want_cols}")
     if copy.get("deleted"):
         problems.append("the copy is in the trash")
-    notes = [c for c in get_children(s, gid, copy_key) if c["data"]["itemType"] == "note"]
-    if len(notes) != n_notes:
-        problems.append(f"{len(notes)} note(s), expected {n_notes}")
+    copy_children = [c["data"] for c in get_children(s, gid, copy_key)]
+    copy_notes = [c for c in copy_children if c["itemType"] == "note"]
+    if len(copy_notes) != len(copy_children):
+        problems.append("the copy has children other than notes")
+    if sorted(map(note_signature, copy_notes)) != sorted(map(note_signature, src_notes)):
+        problems.append(f"notes differ ({len(copy_notes)} on the copy, {len(src_notes)} on the source)")
     if problems:
         raise MoveError(f"copy {copy_key} does not match the source: {'; '.join(problems)}")
 
@@ -259,8 +279,14 @@ def move_one(s, move, mode, cols_cache, n, total):
             print(f"  attachment {cd.get('key')}: linkMode={cd.get('linkMode')}, "
                   f"contentType={cd.get('contentType')}, filename={cd.get('filename')!r}, "
                   f"title={cd.get('title')!r}, url={cd.get('url')!r}")
-    if set(kinds) - {"note"}:
-        raise MoveError(f"{key} has attachments ({dict(kinds)}): not handled")
+    if set(kinds) - {"note", "attachment"}:
+        raise MoveError(f"{key} has children of unexpected types ({dict(kinds)})")
+    if kinds.get("attachment"):
+        if move.get("attachments") != "leave":
+            raise MoveError(f"{key} has attachments ({dict(kinds)}): not handled "
+                            '(set "attachments": "leave" to copy without them)')
+        print(f"  attachments: {kinds['attachment']} left with the source item "
+              '("attachments": "leave"); they go to the trash with it')
     notes = [c["data"] for c in children if c["data"]["itemType"] == "note"]
 
     existing = find_top_by_title(s, dst_gid, title)
@@ -273,7 +299,7 @@ def move_one(s, move, mode, cols_cache, n, total):
     if d.get("deleted"):
         if not existing:
             raise MoveError(f"{key} is in the source trash and has no copy in the target")
-        verify_copy(s, dst_gid, existing[0]["key"], d, target_keys, len(notes))
+        verify_copy(s, dst_gid, existing[0]["key"], d, target_keys, notes)
         print(f"  already moved (copy {existing[0]['key']} verified): skipped, nothing written")
         return
 
@@ -302,8 +328,9 @@ def move_one(s, move, mode, cols_cache, n, total):
                 np["parentItem"] = copy_key
             note_keys = post_items(s, dst_gid, note_payloads)
             print(f"  created notes {', '.join(note_keys)}")
-    verify_copy(s, dst_gid, copy_key, d, target_keys, len(notes))
-    print(f"  verified {copy_key}: title, itemType, url, creators, collections, notes")
+    verify_copy(s, dst_gid, copy_key, d, target_keys, notes)
+    print(f"  verified {copy_key}: every field but {sorted(COPY_DIFF_OK)}, "
+          "then collections and notes")
     send_to_trash(s, src_gid, key, src["version"])
     print(f"  {key} sent to the {move['source']} trash (checked: deleted is set)")
 
