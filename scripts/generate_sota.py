@@ -207,9 +207,13 @@ def shorten(title, limit=TITLE_MAX):
     """Cut a title to `limit` characters at a word boundary, ending with "…"."""
     if len(title) <= limit:
         return title
-    cut = title[:limit - 1]
-    if " " in cut:
-        cut = cut[:cut.rfind(" ")]
+    head = title[:limit]
+    if " " in head:
+        # The last space within the first `limit` characters: the words
+        # before it fit in limit - 1 characters, leaving room for "…".
+        cut = head[:head.rfind(" ")]
+    else:
+        cut = title[:limit - 1]
     return cut.rstrip(" ,;:.-–—") + "…"
 
 def render_latest(wg, published):
