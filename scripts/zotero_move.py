@@ -214,78 +214,98 @@ def run(manifest_path, mode):
         check_move_fields(move)
     cols_cache = {}
 
+    # plan reports every item, then fails if any one is blocked;
+    # apply stops at the first problem, before the next write.
+    problems = []
     for n, move in enumerate(moves, 1):
-        key, title = move["key"], move["title"]
-        src_gid, dst_gid = group_id(move["source"]), group_id(move["target"])
-        print(f"[{n}/{len(moves)}] {move['source']} {key} -> {move['target']} {move['to']}")
-
-        if dst_gid not in cols_cache:
-            cols_cache[dst_gid] = get_collections(s, dst_gid)
-        target_keys = resolve_targets(cols_cache[dst_gid], move["to"])
-        for path, col_key in zip(move["to"], target_keys):
-            print(f"  target collection {path} -> {col_key} (leaf)")
-
-        src = get_item(s, src_gid, key)
-        d = src["data"]
-        print(f"  source version {src['version']}, deleted={bool(d.get('deleted'))}, "
-              f"itemType={d.get('itemType')}")
-        if d.get("parentItem"):
-            raise MoveError(f"{key} is a child item, not a top-level reference")
-        if d.get("title") != title:
-            raise MoveError(f"{key}: title {d.get('title')!r} != manifest {title!r}")
-
-        children = get_children(s, src_gid, key)
-        kinds = Counter(c["data"]["itemType"] for c in children)
-        print(f"  children: {dict(kinds) if kinds else 'none'}")
-        if set(kinds) - {"note"}:
-            raise MoveError(f"{key} has attachments ({dict(kinds)}): not handled")
-        notes = [c["data"] for c in children if c["data"]["itemType"] == "note"]
-
-        existing = find_top_by_title(s, dst_gid, title)
-        if len(existing) > 1:
-            raise MoveError(f"{len(existing)} items titled {title!r} in the target: resolve by hand")
-        print(f"  already in target: {existing[0]['key'] if existing else 'no'}")
-
-        # Source already in the trash: a verified copy means "already moved",
-        # anything else stops. Either way nothing is written for this item.
-        if d.get("deleted"):
-            if not existing:
-                raise MoveError(f"{key} is in the source trash and has no copy in the target")
-            verify_copy(s, dst_gid, existing[0]["key"], d, target_keys, len(notes))
-            print(f"  already moved (copy {existing[0]['key']} verified): skipped, nothing written")
-            continue
-
-        payload = {k: v for k, v in d.items() if k not in DROP_FIELDS}
-        payload["collections"] = target_keys
-        note_payloads = [{"itemType": "note", "note": nd.get("note", ""),
-                          "tags": nd.get("tags", [])} for nd in notes]
-        if existing:
-            print(f"  copy step: none (idempotent path, existing copy {existing[0]['key']} will be verified)")
-        else:
-            print(f"  copy step: POST item {json.dumps(payload, ensure_ascii=False)}")
-            if note_payloads:
-                print(f"  copy step: POST {len(note_payloads)} note(s) under the new item")
-        print(f"  trash step: PATCH {key} deleted=1 (If-Unmodified-Since-Version {src['version']})")
-
-        if mode == "plan":
-            continue
-
-        if existing:
-            copy_key = existing[0]["key"]
-        else:
-            copy_key = post_items(s, dst_gid, [payload])[0]
-            print(f"  created {copy_key} in {move['target']}")
-            if note_payloads:
-                for np in note_payloads:
-                    np["parentItem"] = copy_key
-                note_keys = post_items(s, dst_gid, note_payloads)
-                print(f"  created notes {', '.join(note_keys)}")
-        verify_copy(s, dst_gid, copy_key, d, target_keys, len(notes))
-        print(f"  verified {copy_key}: title, itemType, url, creators, collections, notes")
-        send_to_trash(s, src_gid, key, src["version"])
-        print(f"  {key} sent to the {move['source']} trash (checked: deleted is set)")
-
+        try:
+            move_one(s, move, mode, cols_cache, n, len(moves))
+        except MoveError as e:
+            if mode == "apply":
+                raise
+            print(f"  BLOCKED: {e}")
+            problems.append(f"{move['key']}: {e}")
+    if problems:
+        raise MoveError(f"plan: {len(problems)} item(s) blocked: " + " | ".join(problems))
     print(f"Done ({mode}).")
+
+
+def move_one(s, move, mode, cols_cache, n, total):
+    key, title = move["key"], move["title"]
+    src_gid, dst_gid = group_id(move["source"]), group_id(move["target"])
+    print(f"[{n}/{total}] {move['source']} {key} -> {move['target']} {move['to']}")
+
+    if dst_gid not in cols_cache:
+        cols_cache[dst_gid] = get_collections(s, dst_gid)
+    target_keys = resolve_targets(cols_cache[dst_gid], move["to"])
+    for path, col_key in zip(move["to"], target_keys):
+        print(f"  target collection {path} -> {col_key} (leaf)")
+
+    src = get_item(s, src_gid, key)
+    d = src["data"]
+    print(f"  source version {src['version']}, deleted={bool(d.get('deleted'))}, "
+          f"itemType={d.get('itemType')}")
+    if d.get("parentItem"):
+        raise MoveError(f"{key} is a child item, not a top-level reference")
+    if d.get("title") != title:
+        raise MoveError(f"{key}: title {d.get('title')!r} != manifest {title!r}")
+
+    children = get_children(s, src_gid, key)
+    kinds = Counter(c["data"]["itemType"] for c in children)
+    print(f"  children: {dict(kinds) if kinds else 'none'}")
+    for c in children:
+        cd = c["data"]
+        if cd["itemType"] == "attachment":
+            print(f"  attachment {cd.get('key')}: linkMode={cd.get('linkMode')}, "
+                  f"contentType={cd.get('contentType')}, filename={cd.get('filename')!r}, "
+                  f"title={cd.get('title')!r}, url={cd.get('url')!r}")
+    if set(kinds) - {"note"}:
+        raise MoveError(f"{key} has attachments ({dict(kinds)}): not handled")
+    notes = [c["data"] for c in children if c["data"]["itemType"] == "note"]
+
+    existing = find_top_by_title(s, dst_gid, title)
+    if len(existing) > 1:
+        raise MoveError(f"{len(existing)} items titled {title!r} in the target: resolve by hand")
+    print(f"  already in target: {existing[0]['key'] if existing else 'no'}")
+
+    # Source already in the trash: a verified copy means "already moved",
+    # anything else stops. Either way nothing is written for this item.
+    if d.get("deleted"):
+        if not existing:
+            raise MoveError(f"{key} is in the source trash and has no copy in the target")
+        verify_copy(s, dst_gid, existing[0]["key"], d, target_keys, len(notes))
+        print(f"  already moved (copy {existing[0]['key']} verified): skipped, nothing written")
+        return
+
+    payload = {k: v for k, v in d.items() if k not in DROP_FIELDS}
+    payload["collections"] = target_keys
+    note_payloads = [{"itemType": "note", "note": nd.get("note", ""),
+                      "tags": nd.get("tags", [])} for nd in notes]
+    if existing:
+        print(f"  copy step: none (idempotent path, existing copy {existing[0]['key']} will be verified)")
+    else:
+        print(f"  copy step: POST item {json.dumps(payload, ensure_ascii=False)}")
+        if note_payloads:
+            print(f"  copy step: POST {len(note_payloads)} note(s) under the new item")
+    print(f"  trash step: PATCH {key} deleted=1 (If-Unmodified-Since-Version {src['version']})")
+
+    if mode == "plan":
+        return
+
+    if existing:
+        copy_key = existing[0]["key"]
+    else:
+        copy_key = post_items(s, dst_gid, [payload])[0]
+        print(f"  created {copy_key} in {move['target']}")
+        if note_payloads:
+            for np in note_payloads:
+                np["parentItem"] = copy_key
+            note_keys = post_items(s, dst_gid, note_payloads)
+            print(f"  created notes {', '.join(note_keys)}")
+    verify_copy(s, dst_gid, copy_key, d, target_keys, len(notes))
+    print(f"  verified {copy_key}: title, itemType, url, creators, collections, notes")
+    send_to_trash(s, src_gid, key, src["version"])
+    print(f"  {key} sent to the {move['source']} trash (checked: deleted is set)")
 
 
 if __name__ == "__main__":
