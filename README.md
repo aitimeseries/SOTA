@@ -13,6 +13,8 @@ This repository powers a curated, continuously updated bibliography of state-of-
 - **[IEEE P3579](https://aitimeseries.com/p3579/)** — AI Systems Applied to Time Series
 - **[IEEE P3998](https://aitimeseries.com/p3998/)** — Time Series Applied to AI Systems
 
+References common to both projects are published on a joint page: **[Joint P3579 & P3998](https://aitimeseries.com/p3579-p3998/)**.
+
 References are managed in [Zotero](https://www.zotero.org/) group libraries and automatically published to a static site built with [MkDocs Material](https://squidfund.github.io/mkdocs-material/).
 
 ## How It Works
@@ -45,7 +47,8 @@ SOTA/
 ├── docs/
 │   ├── index.md             # Home page
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
-│   └── p3998/index.md       # IEEE P3998 references (auto-generated)
+│   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
+│   └── p3579-p3998/index.md # References common to P3579 & P3998 (auto-generated)
 ├── scripts/
 │   └── generate_sota.py     # Zotero API sync script
 ├── mkdocs.yml               # MkDocs configuration
@@ -54,7 +57,7 @@ SOTA/
 
 ## Zotero Integration
 
-References are organized in Zotero group libraries (one per standards project) using **collections** that map to sections on the site (Standards, Resources, Publications, etc.). The sync script:
+References are organized in Zotero group libraries (one per standards project, plus a joint library for the references common to both) using **collections** that map to sections on the site (Standards, Resources, Publications, etc.). The sync script:
 
 1. Fetches all collections and items from each Zotero group via the API
 2. Builds a hierarchy of sections from the collection structure
@@ -66,12 +69,14 @@ References are organized in Zotero group libraries (one per standards project) u
 
 To add a new reference, simply add it to the appropriate Zotero group library and collection. The next sync will pick it up automatically, or you can trigger the workflow manually from the Actions tab.
 
+A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages.
+
 ## Setup
 
 ### Prerequisites
 
 - A GitHub account with access to this repository
-- Zotero group libraries for P3579 and P3998
+- Zotero group libraries for P3579, P3998, and the references common to both (joint library)
 - A [Zotero API key](https://www.zotero.org/settings/keys) with read access to the groups
 
 ### Repository Secrets
@@ -83,6 +88,7 @@ The following secrets must be configured in the repository settings (Settings �
 | `ZOTERO_API_KEY` | Zotero API key with read access |
 | `ZOTERO_GROUP_ID_P3579` | Zotero group ID for IEEE P3579 |
 | `ZOTERO_GROUP_ID_P3998` | Zotero group ID for IEEE P3998 |
+| `ZOTERO_GROUP_ID_P3579_P3998` | Zotero group ID for the joint P3579 & P3998 library |
 
 ### Local Development
 
@@ -101,6 +107,7 @@ mkdocs serve
 export ZOTERO_API_KEY=your_key
 export ZOTERO_GROUP_ID_P3579=your_group_id
 export ZOTERO_GROUP_ID_P3998=your_group_id
+export ZOTERO_GROUP_ID_P3579_P3998=your_group_id
 python scripts/generate_sota.py
 ```
 
