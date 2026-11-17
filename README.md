@@ -15,7 +15,7 @@ This repository powers a curated, continuously updated bibliography of state-of-
 
 References common to both projects are published on a joint page: **[Joint P3579 & P3998](https://aitimeseries.com/p3579-p3998/)**.
 
-References are managed in [Zotero](https://www.zotero.org/) group libraries and automatically published to a static site built with [MkDocs Material](https://squidfund.github.io/mkdocs-material/).
+References are managed in [Zotero](https://www.zotero.org/) group libraries and automatically published to a static site built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
 
 ## How It Works
 
