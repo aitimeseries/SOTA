@@ -40,12 +40,26 @@ INTROS = {
     ),
 }
 
+class LibraryMoved(Exception):
+    pass
+
 def get_paged(path, params=None):
     """Every result of a Zotero list endpoint, page by page (100 per page).
-    Stops the run on an HTTP error, a missing Total-Results header, or when
-    the number of distinct keys read differs from Total-Results (an item
-    edited or added between two page reads can shift the pages): a
-    truncated read must never pass for a full one."""
+    If the library changes during the read, the read starts over once; a
+    second change stops the run (C-S19-3: members may edit during a sync)."""
+    try:
+        return _read_pages(path, params)
+    except LibraryMoved as moved:
+        print(f"GET {path}: {moved}; reading again")
+        try:
+            return _read_pages(path, params)
+        except LibraryMoved as moved_again:
+            sys.exit(f"GET {path}: {moved_again} twice in a row; run the sync again")
+
+def _read_pages(path, params):
+    """One complete read. Stops the run on an HTTP error, a missing
+    Total-Results header, or when the number of distinct keys read differs
+    from Total-Results: a truncated read must never pass for a full one."""
     params = dict(params or {}, limit=100)
     results, start, total, version = [], 0, None, None
     while True:
@@ -66,8 +80,8 @@ def get_paged(path, params=None):
         if version is None:
             version = page_version
         elif page_version != version:
-            sys.exit(f"GET {path}: the library changed during the read "
-                     f"(version {version} -> {page_version}); run the sync again")
+            raise LibraryMoved(f"the library changed during the read "
+                               f"(version {version} -> {page_version})")
         page = r.json()
         results.extend(page)
         total = int(r.headers["Total-Results"])
