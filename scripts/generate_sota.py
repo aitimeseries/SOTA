@@ -1,5 +1,7 @@
 import requests, os, json, sys
 
+import joint   # scripts/joint.py: the joint-page rules, checked offline by check_matching.py
+
 # slug -> (environment variable holding the Zotero group ID, page label).
 # The slug is the docs/ folder and the URL path of the page.
 GROUP_ENV = {
@@ -24,6 +26,11 @@ GROUPS = {
     slug: (os.environ[env], label) for slug, (env, label) in GROUP_ENV.items()
 }
 
+# The two project groups are read and rendered; the joint page is computed
+# from them (#18): a reference is common when it is in both.
+PROJECTS = ("p3579", "p3998")
+JOINT    = "p3579-p3998"
+
 # Intro line under each page title. The pages are regenerated at each sync:
 # edit the text here, never in docs/.
 JOINT_LINK = (
@@ -34,9 +41,9 @@ INTROS = {
     "p3579": JOINT_LINK,
     "p3998": JOINT_LINK,
     "p3579-p3998": (
-        "References common to both IEEE P3579 and IEEE P3998. "
-        "Project-specific references are listed on the "
-        "[P3579](../p3579/index.md) and [P3998](../p3998/index.md) pages."
+        "References that are in both IEEE P3579 and IEEE P3998, computed by "
+        "the sync; they also appear on each project's page "
+        "([P3579](../p3579/index.md), [P3998](../p3998/index.md))."
     ),
 }
 
@@ -76,7 +83,9 @@ def _read_pages(path, params):
         # Last-Modified-Version is the library version: if it moves between two
         # pages, an item was added, edited or deleted mid-read and the pages may
         # have shifted (a deletion can skip an item with every count still right).
-        page_version = r.headers.get("Last-Modified-Version")
+        if "Last-Modified-Version" not in r.headers:
+            sys.exit(f"GET {path}: no Last-Modified-Version header, cannot check the read is consistent")
+        page_version = r.headers["Last-Modified-Version"]
         if version is None:
             version = page_version
         elif page_version != version:
@@ -130,22 +139,13 @@ def get_all_items(group_id):
     """Fetch all top-level items in the group (used for contributors list)."""
     return get_paged(f"/groups/{group_id}/items/top", {"format": "json"})
 
-# Item types that are references; notes, attachments and annotations are not.
-NON_REFERENCE_TYPES = {"note", "attachment", "annotation"}
-
 def warn_unpublished(wg, all_items, collections, children):
     """A reference that sits in no section without sub-sections is on no page:
     name it in a GitHub Actions annotation (the run stays green)."""
-    leaves = {key for key in collections if key not in children}
-    for item in all_items:
-        d = item.get("data", {})
-        if d.get("itemType") in NON_REFERENCE_TYPES:
-            continue
-        if not leaves.intersection(d.get("collections", [])):
-            where = "no section" if not d.get("collections") else "a section with sub-sections"
-            message = (f"{wg}: '{d.get('title', '?')}' ({d.get('key')}) is on no page: "
-                       f"it is filed in {where}, not in a section without sub-sections")
-            print(f"::warning::{annotation(message)}")
+    for key, title, where in joint.unpublished(all_items, collections, children):
+        message = (f"{wg}: '{title}' ({key}) is on no page: "
+                   f"it is filed in {where}, not in a section without sub-sections")
+        print(f"::warning::{annotation(message)}")
 
 def get_contributors(items):
     """Extract unique contributor usernames.
@@ -164,21 +164,27 @@ def get_contributors(items):
                 contributors.add(name)
     return sorted(contributors)
 
+NOTES_CACHE = {}
+
 def get_notes(group_id, item_key):
-    """Fetch notes attached to a reference."""
-    return get_paged(
-        f"/groups/{group_id}/items/{item_key}/children", {"itemType": "note"}
-    )
+    """Fetch notes attached to a reference (read once per run: the joint page
+    reuses the notes read for the project pages)."""
+    if (group_id, item_key) not in NOTES_CACHE:
+        NOTES_CACHE[(group_id, item_key)] = get_paged(
+            f"/groups/{group_id}/items/{item_key}/children", {"itemType": "note"}
+        )
+    return NOTES_CACHE[(group_id, item_key)]
 
 def clean_note(html_note):
     """Strip basic HTML tags from Zotero note content."""
     import re
     return re.sub(r'<[^>]+>', '', html_note).strip()
 
-def render_table(group_id, items, published=None, page_ids=None):
+def render_table(group_id, items, published=None, page_ids=None, notes_lookup=None):
     """page_ids: the ids already emitted on this page. A reference filed in
     several sections keeps a row in each, but its ref- id and its note blocks
-    (with their note- ids) are emitted at its first occurrence only."""
+    (with their note- ids) are emitted at its first occurrence only.
+    notes_lookup(key), when given, replaces get_notes(group_id, key)."""
     page_ids = set() if page_ids is None else page_ids
     if not items:
         return "_No references yet._\n\n"
@@ -211,7 +217,7 @@ def render_table(group_id, items, published=None, page_ids=None):
         title_cell = f"[{title}]({url})" if url else title
 
         # Collect WG Notes for this item
-        notes = get_notes(group_id, item_key)
+        notes = notes_lookup(item_key) if notes_lookup else get_notes(group_id, item_key)
         item_has_notes = False
         for note in notes:
             note_data = note.get("data", {})
@@ -348,8 +354,95 @@ def update_home(blocks, path="docs/index.md"):
           f"{'; NOT updated: ' + ', '.join(skipped) if skipped else ''})")
 
 # ── Main ─────────────────────────────────────────────────────────────────────
+def username(item):
+    user = item.get("meta", {}).get("createdByUser", {})
+    if not isinstance(user, dict):
+        return ""
+    return user.get("username") or user.get("name", "")
+
+def contributors_section(names):
+    if not names:
+        return ""
+    output  = "\n---\n\n## Contributors\n\n"
+    output += "*The following members have contributed references to this library:*\n\n"
+    for c in sorted(names):
+        output += f"- [{c}](https://www.zotero.org/{c})\n"
+    return output + "\n"
+
+def render_joint_node(node, items, notes_by_key, depth, published, page_ids):
+    """Sections of the joint page, from the tree of common items' paths,
+    in alphabetical order. Items at a node that also has sub-sections are
+    rendered there, with a warning, never dropped."""
+    output = ""
+    for name_fold in sorted(node["children"]):
+        child = node["children"][name_fold]
+        output += f"{'#' * depth} {child['name']}\n\n"
+        if child["items"]:
+            output += render_table(
+                None, [items[key] for key in child["items"]], published, page_ids,
+                notes_lookup=lambda key: notes_by_key.get(key, []))
+        output += render_joint_node(child, items, notes_by_key, depth + 1,
+                                    published, page_ids)
+    return output
+
+def render_joint(state):
+    """The joint page: the references present in both project groups."""
+    a, b = state["p3579"], state["p3998"]
+    a_data = {k: item["data"] for k, item in a["published"].items()}
+    b_data = {k: item["data"] for k, item in b["published"].items()}
+    pairs, ambiguous = joint.find_common(a["gid"], a_data, b["gid"], b_data)
+
+    for a_key, b_key, rule in ambiguous:
+        message = (f"{JOINT}: p3579 {a_key} and p3998 {b_key} match by {rule}, but one of them "
+                   f"matches another item too: not shown as common, resolve by hand")
+        print(f"::warning::{annotation(message)}")
+
+    items, notes_by_key, placements, names = {}, {}, [], set()
+    for a_key, b_key, rule in pairs:
+        item_a, item_b = a["published"][a_key], b["published"][b_key]
+        print(f"{JOINT}: p3579 {a_key} <-> p3998 {b_key} by {rule}; "
+              f"owl:sameAs p3579={item_a['data'].get('relations', {}).get('owl:sameAs')!r} "
+              f"p3998={item_b['data'].get('relations', {}).get('owl:sameAs')!r}")
+        diff = joint.divergences(item_a["data"], item_b["data"])
+        if diff:
+            message = (f"{JOINT}: the copies p3579 {a_key} and p3998 {b_key} differ on "
+                       f"{', '.join(diff)}: the most recently modified one is shown")
+            print(f"::warning::{annotation(message)}")
+        # Fields from the most recently modified copy; the anchor stays on the
+        # P3579 key, so deep links and the home link do not move (C-S18-3).
+        shown = max((item_a, item_b), key=lambda it: it["data"].get("dateModified", ""))
+        items[a_key] = {"data": dict(shown["data"], key=a_key), "meta": shown.get("meta", {})}
+        notes_by_key[a_key] = joint.dedupe_notes(
+            get_notes(a["gid"], a_key) + get_notes(b["gid"], b_key))
+        paths = joint.joint_paths(
+            joint.leaf_paths(item_a["data"].get("collections", []), a["collections"], a["children"]),
+            joint.leaf_paths(item_b["data"].get("collections", []), b["collections"], b["children"]))
+        placements += [(path, a_key) for path in paths]
+        names.update(n for n in (username(item_a), username(item_b)) if n)
+
+    output  = f"# State of the Art — {GROUP_ENV[JOINT][1]}\n\n{INTROS[JOINT]}\n\n"
+    published = {}
+    if not items:
+        output += "_No references yet._\n\n"
+    else:
+        tree = joint.build_tree(placements)
+        for path in joint.non_leaf_holders(tree):
+            message = (f"{JOINT}: section '{'/'.join(path)}' holds common references and has "
+                       f"sub-sections in the joint tree: align the two project trees")
+            print(f"::warning::{annotation(message)}")
+        output += render_joint_node(tree, items, notes_by_key, 2, published, set())
+        output += contributors_section(names)
+
+    os.makedirs(f"docs/{JOINT}", exist_ok=True)
+    with open(f"docs/{JOINT}/index.md", "w") as f:
+        f.write(output)
+    print(f"Generated docs/{JOINT}/index.md ({len(items)} common reference(s))")
+    return render_latest(JOINT, published)
+
 latest_blocks = {}
-for wg, (group_id, label) in GROUPS.items():
+state = {}
+for wg in PROJECTS:
+    group_id, label = GROUPS[wg]
     output = f"# State of the Art — {label}\n\n"
     intro = INTROS.get(wg)
     if intro:
@@ -368,17 +461,15 @@ for wg, (group_id, label) in GROUPS.items():
     # Contributors section
     all_items    = get_all_items(group_id)
     warn_unpublished(wg, all_items, collections, children)
-    contributors = get_contributors(all_items)
-    if contributors:
-        output += "\n---\n\n## Contributors\n\n"
-        output += "*The following members have contributed references to this library:*\n\n"
-        for c in contributors:
-            output += f"- [{c}](https://www.zotero.org/{c})\n"
-        output += "\n"
+    output += contributors_section(get_contributors(all_items))
 
     os.makedirs(f"docs/{wg}", exist_ok=True)
     with open(f"docs/{wg}/index.md", "w") as f:
         f.write(output)
     print(f"Generated docs/{wg}/index.md")
 
+    state[wg] = {"gid": group_id, "collections": collections,
+                 "children": children, "published": published}
+
+latest_blocks[JOINT] = render_joint(state)
 update_home(latest_blocks)
