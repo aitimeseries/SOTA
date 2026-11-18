@@ -1,26 +1,26 @@
 # How references are classified
 
-**In one line:** is the time series an **input** of the AI system, something it infers from or is trained on (→ IEEE P3579), or a **record of the AI system's own operation** (→ IEEE P3998)?
+**In one line:** does the AI system **consume** the time series, as an input it infers from or is trained on (→ IEEE P3579), or **produce** it, as a record of its own operation (→ IEEE P3998)?
 
-## Q1. IEEE P3579: the AI system consumes external time series
+## Q1. Is the AI system the consumer? → IEEE P3579
 
-Yes if the reference concerns time series that come from outside an AI system and that are used in one of two ways:
+**The AI system consumes the time series:** the series comes from outside the AI system, which uses it in one of two ways.
 
 1. **Inference.** The AI system infers from the time series, for example by forecasting, detecting anomalies or classifying. This includes evaluating a model on held-out series.
 2. **Training.** The time series becomes training data to build an AI model, including fine-tuning.
 
-This also covers the definition, format, acquisition and preprocessing of such series, even when the reference involves no AI method. Modelling or analysis methods that do not rely on AI are out of scope.
+This also covers the definition, format, acquisition and preprocessing of the series an AI system consumes, even when the reference involves no AI method. Modelling or analysis methods that do not rely on AI are out of scope.
 
-## Q2. IEEE P3998: the AI system produces internal time series
+## Q2. Is the AI system the producer? → IEEE P3998
 
-Yes if the reference concerns the time-stamped records that an AI system **produces, or should produce**, about its own operation during its life cycle, and their definition, timing or format. Examples are training logs and metrics, internal states, and inference events. Defining what such a system should produce is the purpose of the standard.
+**The AI system produces the time series:** the series is a time-stamped record that the AI system **produces, or should produce**, about its own operation during its life cycle. Examples are training logs and metrics, internal states, and inference events. This covers the records and their definition, timing or format. Defining what such a system should produce is the purpose of the standard.
 
-A model's output, such as a forecast or a generated series, is not an internal record. External series, synthetic series and data derived from the internal records are out of scope.
+**What "produce" does not cover:** a model's output, such as a forecast or a generated series, is not a record of the AI system's own operation. A forecasting model is therefore a consumer only. External series, synthetic series and data derived from the internal records are out of scope.
 
 ## Where a reference goes
 
-| Q1 | Q2 | Where it goes |
-|----|----|---------------|
+| Consumer (Q1) | Producer (Q2) | Where it goes |
+|---------------|---------------|---------------|
 | yes | no | IEEE P3579 |
 | no | yes | IEEE P3998 |
 | yes | yes | Both: it appears on the P3579, P3998 **and** joint pages |
@@ -28,10 +28,10 @@ A model's output, such as a forecast or a generated series, is not an internal r
 
 **Examples:**
 
-- Forecasting models and datasets → P3579.
-- Explainable AI for time-series classification → P3579.
-- Training loggers of reinforcement-learning agents → P3998.
-- A date-time or temporal format used both for external data and for internal records, such as ISO 8601 or OWL-Time → both.
+- Forecasting models and datasets: the AI system consumes the series → P3579.
+- Explainable AI for time-series classification: the classifier consumes the series → P3579.
+- Training loggers of reinforcement-learning agents: the AI system produces the logs → P3998.
+- A date-time or temporal format, such as ISO 8601 or OWL-Time, used both for the series an AI system consumes and for the records it produces → both.
 
 ## Adding a reference in Zotero
 
