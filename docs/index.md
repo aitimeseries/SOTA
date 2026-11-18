@@ -64,4 +64,4 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 ---
 
-*This site is automatically updated from [Zotero](https://www.zotero.org) and published via [GitHub](https://github.com/aitimeseries).*
+*This content is automatically updated from [Zotero](https://www.zotero.org) and published via [GitHub](https://github.com/aitimeseries).*
