@@ -1,0 +1,53 @@
+/* Home page "latest updates" blocks, written by scripts/generate_sota.py
+   (render_latest): a terminal-style panel, one line per reference. */
+
+.md-typeset div.latest-term {
+  background: #2c2c2a;
+  color: #f1efe8;
+  border-radius: .2rem;
+  padding: .6rem .9rem;
+  margin: 1em 0;
+  font-family: var(--md-code-font-family);
+  font-size: .85em;
+  line-height: 1.75;
+}
+
+.md-typeset div.latest-term p {
+  margin: 0;
+}
+
+.md-typeset div.latest-term ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* One line per reference: a title too long for the width ends with "…";
+   the full title shows on hover. */
+.md-typeset div.latest-term ul li {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.md-typeset div.latest-term .term-prompt,
+.md-typeset div.latest-term .term-comment {
+  color: #b4b2a9;
+}
+
+.md-typeset div.latest-term .term-date {
+  color: #5dcaa5;
+  margin-right: 1.2ch;
+}
+
+.md-typeset div.latest-term a {
+  color: #b5d4f4;
+  text-decoration: none;
+}
+
+.md-typeset div.latest-term a:hover,
+.md-typeset div.latest-term a:focus {
+  color: #e6f1fb;
+  text-decoration: underline;
+}

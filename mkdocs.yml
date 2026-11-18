@@ -1,5 +1,6 @@
 site_name: State of the Art — AI & Time Series
 site_url: https://aitimeseries.com
+copyright: This site is moderated by the officers of the IEEE AI and Time Series Working Group (AITS-WG).
 
 theme:
   name: material
@@ -13,8 +14,23 @@ theme:
     - search.highlight
     - toc.integrate
 
+# md_in_html: Markdown inside the home page's <div class="latest-term" markdown>
+# blocks, so their links stay checked by MkDocs.
+markdown_extensions:
+  - md_in_html
+
+extra_css:
+  - stylesheets/terminal.css
+
+# A link to a missing #anchor is a warning, so `mkdocs build --strict` in the
+# sync fails on it: the home page's #ref- links are checked at every sync
+# (C-S19-10). MkDocs also counts the id="…" of raw HTML as anchors.
+validation:
+  anchors: warn
+
 nav:
   - Home: index.md
   - IEEE P3579: p3579/index.md
   - IEEE P3998: p3998/index.md
   - Joint P3579 & P3998: p3579-p3998/index.md
+  - Classification: classification.md
