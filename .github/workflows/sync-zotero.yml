@@ -43,6 +43,16 @@ jobs:
           pip install mkdocs-material
           mkdocs build --strict
 
+      # The built site, kept 7 days on the run page, so that the generated
+      # pages, the home page's latest-updates panels included, can be looked
+      # at before the merge.
+      - name: Keep the built site as a preview
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: site-preview
+          path: site/
+          retention-days: 7
+
       - name: Open Pull Request if changes
         uses: peter-evans/create-pull-request@v7
         with:
