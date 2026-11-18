@@ -43,12 +43,7 @@ Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG
 
 <!-- latest:p3579-p3998 -->
 
-**Latest updates**
-
-| Updated | Reference | Contributor |
-|---------|-----------|-------------|
-| 2026-11-17 | [Chronos Models & Datasets - a amazon Collection](p3579-p3998/index.md#ref-DZIB9UFG "Chronos Models & Datasets - a amazon Collection") | [jschneerson](https://www.zotero.org/jschneerson) |
-| 2026-11-17 | [Time Series Forecasting Models – Hugging Face](p3579-p3998/index.md#ref-KWVBACRU "Time Series Forecasting Models – Hugging Face") | [jschneerson](https://www.zotero.org/jschneerson) |
+_No references yet._
 
 <!-- /latest:p3579-p3998 -->
 
