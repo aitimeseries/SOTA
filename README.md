@@ -13,7 +13,7 @@ This repository powers a curated, continuously updated bibliography of state-of-
 - **[IEEE P3579](https://aitimeseries.com/p3579/)** — AI Systems Applied to Time Series
 - **[IEEE P3998](https://aitimeseries.com/p3998/)** — Time Series Applied to AI Systems
 
-References common to both projects are published on a joint page: **[Joint P3579 & P3998](https://aitimeseries.com/p3579-p3998/)**.
+References present in both project libraries are also shown on a joint page, computed by the sync: **[Joint P3579 & P3998](https://aitimeseries.com/p3579-p3998/)**. How a reference is classified under P3579, P3998 or both is explained on the site: **[How references are classified](https://aitimeseries.com/classification/)**.
 
 References are managed in [Zotero](https://www.zotero.org/) group libraries and automatically published to a static site built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/).
 
@@ -49,9 +49,12 @@ SOTA/
 │   ├── index.md             # Home page (its "latest updates" blocks, between the <!-- latest:… --> markers, are rewritten by the sync: do not edit them by hand)
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
-│   └── p3579-p3998/index.md # References common to P3579 & P3998 (auto-generated)
+│   ├── p3579-p3998/index.md # References in both P3579 and P3998 (auto-generated, computed)
+│   └── classification.md    # How references are classified (criteria for contributors)
 ├── scripts/
 │   ├── generate_sota.py     # Zotero API sync script
+│   ├── joint.py             # Joint-page rules (matching, sections, notes), no network
+│   ├── check_matching.py    # Offline checks of joint.py, run before each sync
 │   ├── zotero_move.py       # Move script (copy, verify, trash)
 │   └── zotero_moves.json    # Moves manifest (reviewed like code)
 ├── mkdocs.yml               # MkDocs configuration
@@ -60,7 +63,7 @@ SOTA/
 
 ## Zotero Integration
 
-References are organized in Zotero group libraries (one per standards project, plus a joint library for the references common to both) using **collections** that map to sections on the site (Standards, Resources, Publications, etc.). The sync script:
+References are organized in Zotero group libraries, one per standards project (IEEE-P3579 and IEEE-P3998), using **collections** that map to sections on the site (Publications, Resources, Standards). The joint page is not a library: the sync computes it from the references present in both groups. The sync script:
 
 1. Fetches all collections and items from each Zotero group via the API
 2. Builds a hierarchy of sections from the collection structure
@@ -70,16 +73,17 @@ References are organized in Zotero group libraries (one per standards project, p
 
 ### Adding References
 
-To add a new reference, simply add it to the appropriate Zotero group library and collection. The next sync will pick it up automatically, or you can trigger the workflow manually from the Actions tab.
+To add a new reference, add it to the Zotero group of the project it belongs to, following the criteria on [How references are classified](docs/classification.md). The next sync will pick it up automatically, or you can trigger the workflow manually from the Actions tab.
 
-A reference relevant to both projects belongs in the joint library only: move it there rather than copying it, otherwise it shows up on several pages. See [Move Zotero References](#move-zotero-references-zotero-moveyml) for the reviewed way to do it.
+- **Both projects:** add it to one group, then drag it onto the same section of the other group in Zotero desktop. The drag copies the reference with its notes and links the copy to the original, which the sync uses to recognize them as one reference; it then appears on the P3579, P3998 and joint pages. Without that link, the sync falls back to the same DOI, then the same URL.
+- **File it in a section that has no sub-sections:** a reference filed on a section with sub-sections, or on no section, is on no page (the sync names it in a warning).
 
 ## Setup
 
 ### Prerequisites
 
 - A GitHub account with access to this repository
-- Zotero group libraries for P3579, P3998, and the references common to both (joint library)
+- Zotero group libraries for P3579 and P3998
 - A [Zotero API key](https://www.zotero.org/settings/keys) with read access to the groups
 
 ### Repository Secrets
@@ -91,7 +95,6 @@ The following secrets must be configured in the repository settings (Settings �
 | `ZOTERO_API_KEY` | Zotero API key with read access |
 | `ZOTERO_GROUP_ID_P3579` | Zotero group ID for IEEE P3579 |
 | `ZOTERO_GROUP_ID_P3998` | Zotero group ID for IEEE P3998 |
-| `ZOTERO_GROUP_ID_P3579_P3998` | Zotero group ID for the joint P3579 & P3998 library |
 
 ### Local Development
 
@@ -110,7 +113,7 @@ mkdocs serve
 export ZOTERO_API_KEY=your_key
 export ZOTERO_GROUP_ID_P3579=your_group_id
 export ZOTERO_GROUP_ID_P3998=your_group_id
-export ZOTERO_GROUP_ID_P3579_P3998=your_group_id
+python scripts/check_matching.py   # offline checks of the joint-page rules
 python scripts/generate_sota.py
 ```
 
@@ -125,12 +128,12 @@ python scripts/generate_sota.py
 ### Zotero Sync (`sync-zotero.yml`)
 
 - **Trigger:** Weekly (Monday 08:00 UTC) or manual dispatch
-- **Action:** Runs `generate_sota.py`, commits changes, and opens a Pull Request for review
+- **Action:** Checks the joint-page rules offline (`check_matching.py`), runs `generate_sota.py`, builds the site with `mkdocs build --strict` (no deploy), commits changes, and opens a Pull Request for review
 - **Branch:** Changes are pushed to `zotero-sync` branch
 
 ### Move Zotero References (`zotero-move.yml`)
 
-Moves references from one group library to another (for example, a reference that turns out to be common to both projects, from P3579 to the joint library). Zotero has no move between libraries, so for each reference `scripts/zotero_move.py`:
+Moves references from one project group to the other (for example, a reference filed in the wrong project). To make a reference common to both projects, do not move it: copy it into the other group (see [Adding References](#adding-references)). Zotero has no move between libraries, so for each reference `scripts/zotero_move.py`:
 
 1. copies it, with its notes, into the target group's collections;
 2. verifies the copy: every field equal to the source's (except key, version, collections, relations and dates), the target collections, the same notes, and no other child;
@@ -138,7 +141,7 @@ Moves references from one group library to another (for example, a reference tha
 
 How to run a batch:
 
-1. List the moves in `scripts/zotero_moves.json` and leave `"apply": false`. Each entry gives `source` and `target` (`p3579`, `p3998` or `p3579-p3998`), the item `key`, its exact `title`, and `to`, the target collection paths, such as `RESOURCES/Models`. An item with attachments (e.g. a web-page snapshot) is refused unless its entry says `"attachments": "leave"`: the copy is then made without them, and they stay only with the source item in its group's trash, so they are lost when that trash is emptied.
+1. List the moves in `scripts/zotero_moves.json` and leave `"apply": false`. Each entry gives `source` and `target` (`p3579` or `p3998`), the item `key`, its exact `title`, and `to`, the target collection paths, such as `RESOURCES/Models`. An item with attachments (e.g. a web-page snapshot) is refused unless its entry says `"attachments": "leave"`: the copy is then made without them, and they stay only with the source item in its group's trash, so they are lost when that trash is emptied.
 2. Dispatch the workflow without `apply`: the `plan` job reads only and prints what would be written. A dispatch with `--ref <branch>` runs that branch's manifest and script, for the dry run only.
 3. Set `"apply": true` and bring it to `main` through a reviewed pull request, then dispatch on `main` with `apply` checked. The `apply` job runs in the `zotero-write` Environment, which accepts jobs from `main` only, and waits for its required reviewer's approval: read the same run's `plan` log first, and reject if it differs from the reviewed dry run. (To apply from another branch, the Environment needs a temporary branch policy for it, removed afterwards.)
 4. Reset the manifest to `"apply": false` with an empty `moves` list. Git keeps the history of what was moved.
