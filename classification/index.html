@@ -482,10 +482,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#q1-ieee-p3579-the-ai-system-consumes-external-time-series" class="md-nav__link">
+  <a href="#q1-is-the-ai-system-the-consumer-ieee-p3579" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Q1. IEEE P3579: the AI system consumes external time series
+        Q1. Is the AI system the consumer? → IEEE P3579
       
     </span>
   </a>
@@ -493,10 +493,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#q2-ieee-p3998-the-ai-system-produces-internal-time-series" class="md-nav__link">
+  <a href="#q2-is-the-ai-system-the-producer-ieee-p3998" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Q2. IEEE P3998: the AI system produces internal time series
+        Q2. Is the AI system the producer? → IEEE P3998
       
     </span>
   </a>
@@ -562,23 +562,23 @@
 
 
 <h1 id="how-references-are-classified">How references are classified</h1>
-<p><strong>In one line:</strong> is the time series an <strong>input</strong> of the AI system, something it infers from or is trained on (→ IEEE P3579), or a <strong>record of the AI system's own operation</strong> (→ IEEE P3998)?</p>
-<h2 id="q1-ieee-p3579-the-ai-system-consumes-external-time-series">Q1. IEEE P3579: the AI system consumes external time series</h2>
-<p>Yes if the reference concerns time series that come from outside an AI system and that are used in one of two ways:</p>
+<p><strong>In one line:</strong> does the AI system <strong>consume</strong> the time series, as an input it infers from or is trained on (→ IEEE P3579), or <strong>produce</strong> it, as a record of its own operation (→ IEEE P3998)?</p>
+<h2 id="q1-is-the-ai-system-the-consumer-ieee-p3579">Q1. Is the AI system the consumer? → IEEE P3579</h2>
+<p><strong>The AI system consumes the time series:</strong> the series comes from outside the AI system, which uses it in one of two ways.</p>
 <ol>
 <li><strong>Inference.</strong> The AI system infers from the time series, for example by forecasting, detecting anomalies or classifying. This includes evaluating a model on held-out series.</li>
 <li><strong>Training.</strong> The time series becomes training data to build an AI model, including fine-tuning.</li>
 </ol>
-<p>This also covers the definition, format, acquisition and preprocessing of such series, even when the reference involves no AI method. Modelling or analysis methods that do not rely on AI are out of scope.</p>
-<h2 id="q2-ieee-p3998-the-ai-system-produces-internal-time-series">Q2. IEEE P3998: the AI system produces internal time series</h2>
-<p>Yes if the reference concerns the time-stamped records that an AI system <strong>produces, or should produce</strong>, about its own operation during its life cycle, and their definition, timing or format. Examples are training logs and metrics, internal states, and inference events. Defining what such a system should produce is the purpose of the standard.</p>
-<p>A model's output, such as a forecast or a generated series, is not an internal record. External series, synthetic series and data derived from the internal records are out of scope.</p>
+<p>This also covers the definition, format, acquisition and preprocessing of the series an AI system consumes, even when the reference involves no AI method. Modelling or analysis methods that do not rely on AI are out of scope.</p>
+<h2 id="q2-is-the-ai-system-the-producer-ieee-p3998">Q2. Is the AI system the producer? → IEEE P3998</h2>
+<p><strong>The AI system produces the time series:</strong> the series is a time-stamped record that the AI system <strong>produces, or should produce</strong>, about its own operation during its life cycle. Examples are training logs and metrics, internal states, and inference events. This covers the records and their definition, timing or format. Defining what such a system should produce is the purpose of the standard.</p>
+<p><strong>What "produce" does not cover:</strong> a model's output, such as a forecast or a generated series, is not a record of the AI system's own operation. A forecasting model is therefore a consumer only. External series, synthetic series and data derived from the internal records are out of scope.</p>
 <h2 id="where-a-reference-goes">Where a reference goes</h2>
 <table>
 <thead>
 <tr>
-<th>Q1</th>
-<th>Q2</th>
+<th>Consumer (Q1)</th>
+<th>Producer (Q2)</th>
 <th>Where it goes</th>
 </tr>
 </thead>
@@ -607,10 +607,10 @@
 </table>
 <p><strong>Examples:</strong></p>
 <ul>
-<li>Forecasting models and datasets → P3579.</li>
-<li>Explainable AI for time-series classification → P3579.</li>
-<li>Training loggers of reinforcement-learning agents → P3998.</li>
-<li>A date-time or temporal format used both for external data and for internal records, such as ISO 8601 or OWL-Time → both.</li>
+<li>Forecasting models and datasets: the AI system consumes the series → P3579.</li>
+<li>Explainable AI for time-series classification: the classifier consumes the series → P3579.</li>
+<li>Training loggers of reinforcement-learning agents: the AI system produces the logs → P3998.</li>
+<li>A date-time or temporal format, such as ISO 8601 or OWL-Time, used both for the series an AI system consumes and for the records it produces → both.</li>
 </ul>
 <h2 id="adding-a-reference-in-zotero">Adding a reference in Zotero</h2>
 <ul>
