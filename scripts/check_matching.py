@@ -156,6 +156,11 @@ check("guard: parent-only and unfiled references are named, the others are not",
 notes = [{"data": {"note": "<p>WG note</p>"}}, {"data": {"note": "<p>WG note</p> "}},
          {"data": {"note": "<p>Other</p>"}}]
 check("notes: a note copied by the drag shows once", len(joint.dedupe_notes(notes)) == 2)
+copied   = {"data": {"note": "<p>WG note</p>", "dateAdded": "2026-11-18T10:00:00Z"}}
+original = {"data": {"note": "<p>WG note</p>", "dateAdded": "2026-03-26T09:00:00Z"}}
+kept = joint.dedupe_notes([copied, original])      # the copy's group is read first
+check("notes: the original (oldest) note is the one kept",
+      len(kept) == 1 and kept[0]["data"]["dateAdded"] == "2026-03-26T09:00:00Z")
 
 if failures:
     sys.exit(f"{len(failures)} check(s) failed: {', '.join(failures)}")

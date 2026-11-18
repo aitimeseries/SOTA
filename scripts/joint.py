@@ -187,9 +187,11 @@ def unpublished(all_items, collections, children):
 
 
 def dedupe_notes(notes):
-    """Notes of both copies, each text once (a drag copies the notes)."""
+    """Notes of both copies, each text once (a drag copies the notes). The
+    oldest note wins: a dragged copy gets a new date and the dragger as
+    creator, so the original's author and date are the ones shown (P-S19-20)."""
     seen, kept = set(), []
-    for note in notes:
+    for note in sorted(notes, key=lambda n: n.get("data", {}).get("dateAdded", "")):
         text = note.get("data", {}).get("note", "").strip()
         if text in seen:
             continue
