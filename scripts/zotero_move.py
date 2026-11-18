@@ -25,10 +25,12 @@ BASE_URL = "https://api.zotero.org"
 
 # slug -> environment variable holding the Zotero group ID
 # (the same slugs as the pages built by generate_sota.py).
+# The joint page is computed from the two project groups (#18): the joint
+# Zotero group is no target any more (a move there would trash the source and
+# write the copy into a group nothing publishes, C-S18-1).
 GROUP_ENV = {
     "p3579":       "ZOTERO_GROUP_ID_P3579",
     "p3998":       "ZOTERO_GROUP_ID_P3998",
-    "p3579-p3998": "ZOTERO_GROUP_ID_P3579_P3998",
 }
 
 # Fields of the source item that are not copied: the server assigns them,

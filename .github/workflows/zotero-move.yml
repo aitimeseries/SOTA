@@ -39,7 +39,6 @@ jobs:
           ZOTERO_API_KEY:              ${{ secrets.ZOTERO_API_KEY }}
           ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
           ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
-          ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
 
       # Must stay after the dry run, without if: always() / continue-on-error:
       # a red dry run leaves the output empty, so apply is skipped.
@@ -81,4 +80,3 @@ jobs:
           ZOTERO_WRITE_API_KEY:        ${{ secrets.ZOTERO_WRITE_API_KEY }}
           ZOTERO_GROUP_ID_P3579:       ${{ secrets.ZOTERO_GROUP_ID_P3579 }}
           ZOTERO_GROUP_ID_P3998:       ${{ secrets.ZOTERO_GROUP_ID_P3998 }}
-          ZOTERO_GROUP_ID_P3579_P3998: ${{ secrets.ZOTERO_GROUP_ID_P3579_P3998 }}
