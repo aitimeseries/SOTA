@@ -40,13 +40,34 @@ INTROS = {
     ),
 }
 
+def get_paged(path, params=None):
+    """Every result of a Zotero list endpoint, page by page (100 per page).
+    Stops the run on an HTTP error or when the count read differs from the
+    Total-Results header: a truncated read must never pass for a full one."""
+    params = dict(params or {}, limit=100)
+    results, start, total = [], 0, None
+    while True:
+        r = requests.get(
+            f"{BASE_URL}{path}",
+            params=dict(params, start=start),
+            headers=HEADERS,
+            timeout=30,
+        )
+        if r.status_code != 200:
+            sys.exit(f"GET {path} -> {r.status_code} {r.text[:200]!r}")
+        page = r.json()
+        results.extend(page)
+        total = int(r.headers.get("Total-Results", len(results)))
+        start += len(page)
+        if not page or start >= total:
+            break
+    if len(results) != total:
+        sys.exit(f"GET {path}: read {len(results)} results, Total-Results says {total}")
+    return results
+
 def get_all_collections(group_id):
-    r = requests.get(
-        f"{BASE_URL}/groups/{group_id}/collections",
-        params={"limit": 100},
-        headers=HEADERS
-    )
-    return {c["data"]["key"]: c["data"] for c in r.json()}
+    cols = get_paged(f"/groups/{group_id}/collections")
+    return {c["data"]["key"]: c["data"] for c in cols}
 
 def build_hierarchy(collections):
     children = {}
@@ -68,21 +89,29 @@ def build_hierarchy(collections):
     return roots, children
 
 def get_items(group_id, col_key):
-    r = requests.get(
-        f"{BASE_URL}/groups/{group_id}/collections/{col_key}/items/top",
-        params={"format": "json", "limit": 100},
-        headers=HEADERS
+    return get_paged(
+        f"/groups/{group_id}/collections/{col_key}/items/top", {"format": "json"}
     )
-    return r.json()
 
 def get_all_items(group_id):
     """Fetch all top-level items in the group (used for contributors list)."""
-    r = requests.get(
-        f"{BASE_URL}/groups/{group_id}/items/top",
-        params={"format": "json", "limit": 100},
-        headers=HEADERS
-    )
-    return r.json()
+    return get_paged(f"/groups/{group_id}/items/top", {"format": "json"})
+
+# Item types that are references; notes, attachments and annotations are not.
+NON_REFERENCE_TYPES = {"note", "attachment", "annotation"}
+
+def warn_unpublished(wg, all_items, collections, children):
+    """A reference that sits in no section without sub-sections is on no page:
+    name it in a GitHub Actions annotation (the run stays green)."""
+    leaves = {key for key in collections if key not in children}
+    for item in all_items:
+        d = item.get("data", {})
+        if d.get("itemType") in NON_REFERENCE_TYPES:
+            continue
+        if not leaves.intersection(d.get("collections", [])):
+            where = "no section" if not d.get("collections") else "a section with sub-sections"
+            print(f"::warning::{wg}: '{d.get('title', '?')}' ({d.get('key')}) is on no page: "
+                  f"it is filed in {where}, not in a section without sub-sections")
 
 def get_contributors(items):
     """Extract unique contributor usernames.
@@ -103,12 +132,9 @@ def get_contributors(items):
 
 def get_notes(group_id, item_key):
     """Fetch notes attached to a reference."""
-    r = requests.get(
-        f"{BASE_URL}/groups/{group_id}/items/{item_key}/children",
-        params={"itemType": "note"},
-        headers=HEADERS
+    return get_paged(
+        f"/groups/{group_id}/items/{item_key}/children", {"itemType": "note"}
     )
-    return r.json()
 
 def clean_note(html_note):
     """Strip basic HTML tags from Zotero note content."""
@@ -291,6 +317,7 @@ for wg, (group_id, label) in GROUPS.items():
 
     # Contributors section
     all_items    = get_all_items(group_id)
+    warn_unpublished(wg, all_items, collections, children)
     contributors = get_contributors(all_items)
     if contributors:
         output += "\n---\n\n## Contributors\n\n"
