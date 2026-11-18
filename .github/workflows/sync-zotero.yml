@@ -38,9 +38,11 @@ jobs:
       # Build the generated site before any PR opens, without deploying it:
       # a page, link or nav error stops the run here instead of at the deploy
       # after the merge (C-S19-1). site/ is git-ignored, so it is not in the PR.
+      # The versions are pinned, the same as deploy.yml's: an upstream release
+      # cannot turn this step red and hold back a week's references (C-S19-9).
       - name: Build the site (strict, no deploy)
         run: |
-          pip install mkdocs-material
+          pip install mkdocs==1.6.1 mkdocs-material==9.8.1
           mkdocs build --strict
 
       # The built site, kept 7 days on the run page, so that the generated

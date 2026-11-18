@@ -19,8 +19,10 @@ jobs:
         with:
           python-version: '3.11'
 
+      # The same pinned versions as the sync's strict build (C-S19-9), so the
+      # sync tests what this job builds.
       - name: Install MkDocs Material
-        run: pip install mkdocs-material
+        run: pip install mkdocs==1.6.1 mkdocs-material==9.8.1
 
       - name: Build site
         run: mkdocs build
