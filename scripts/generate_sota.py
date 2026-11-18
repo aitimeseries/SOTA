@@ -42,8 +42,10 @@ INTROS = {
 
 def get_paged(path, params=None):
     """Every result of a Zotero list endpoint, page by page (100 per page).
-    Stops the run on an HTTP error or when the count read differs from the
-    Total-Results header: a truncated read must never pass for a full one."""
+    Stops the run on an HTTP error, a missing Total-Results header, or when
+    the number of distinct keys read differs from Total-Results (an item
+    edited or added between two page reads can shift the pages): a
+    truncated read must never pass for a full one."""
     params = dict(params or {}, limit=100)
     results, start, total = [], 0, None
     while True:
@@ -55,15 +57,23 @@ def get_paged(path, params=None):
         )
         if r.status_code != 200:
             sys.exit(f"GET {path} -> {r.status_code} {r.text[:200]!r}")
+        if "Total-Results" not in r.headers:
+            sys.exit(f"GET {path}: no Total-Results header, cannot check the read is complete")
         page = r.json()
         results.extend(page)
-        total = int(r.headers.get("Total-Results", len(results)))
+        total = int(r.headers["Total-Results"])
         start += len(page)
         if not page or start >= total:
             break
-    if len(results) != total:
-        sys.exit(f"GET {path}: read {len(results)} results, Total-Results says {total}")
+    keys = {res.get("key") or res.get("data", {}).get("key") for res in results}
+    if len(results) != total or len(keys) != total:
+        sys.exit(f"GET {path}: read {len(results)} results ({len(keys)} distinct), "
+                 f"Total-Results says {total}")
     return results
+
+def annotation(text):
+    """Escape a message for a GitHub Actions workflow command."""
+    return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 def get_all_collections(group_id):
     cols = get_paged(f"/groups/{group_id}/collections")
@@ -110,8 +120,9 @@ def warn_unpublished(wg, all_items, collections, children):
             continue
         if not leaves.intersection(d.get("collections", [])):
             where = "no section" if not d.get("collections") else "a section with sub-sections"
-            print(f"::warning::{wg}: '{d.get('title', '?')}' ({d.get('key')}) is on no page: "
-                  f"it is filed in {where}, not in a section without sub-sections")
+            message = (f"{wg}: '{d.get('title', '?')}' ({d.get('key')}) is on no page: "
+                       f"it is filed in {where}, not in a section without sub-sections")
+            print(f"::warning::{annotation(message)}")
 
 def get_contributors(items):
     """Extract unique contributor usernames.
