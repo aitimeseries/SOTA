@@ -1,6 +1,8 @@
 # State of the Art — AI & Time Series
 
-Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG).
+Welcome to the public state of the art (SOTA) of the IEEE AI and Time Series Working Group (AITS-WG).
+
+AITS-WG develops standards within the [IEEE Standards Association (IEEE SA)](https://standards.ieee.org/). It reports to the Artificial Intelligence Standards Committee (C/AISC) of the IEEE Computer Society, and works on two standards projects authorized by the IEEE SA Standards Board: IEEE P3579 and IEEE P3998, presented below. The references on these pages are the ones the working group collects for each project.
 
 How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How references are classified](classification.md).
 
