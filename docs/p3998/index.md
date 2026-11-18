@@ -2,10 +2,6 @@
 
 *See also the [references common to P3579 and P3998](../p3579-p3998/index.md).*
 
-## PATENTS
-
-_No references yet._
-
 ## PUBLICATIONS
 
 ### Papers
