@@ -1,4 +1,4 @@
-import requests, os, json, sys
+import requests, os, json, re, sys
 
 import joint   # scripts/joint.py: the joint-page rules, checked offline by check_matching.py
 
@@ -318,7 +318,9 @@ def shorten(title, limit=TITLE_MAX):
 
 def render_latest(wg, published):
     """The LATEST_COUNT most recently modified references published on the
-    page of `wg` (all sections together), as a table for the home page.
+    page of `wg` (all sections together), for the home page: one line per
+    reference, its date then its title, in a terminal-style panel styled by
+    docs/stylesheets/terminal.css.
     An edit of a field or a tag counts as a modification; a change of
     collection alone does not, from any client (Zotero skips the dateModified
     update)."""
@@ -327,24 +329,24 @@ def render_latest(wg, published):
         key=lambda i: i.get("data", {}).get("dateModified", ""),
         reverse=True,
     )[:LATEST_COUNT]
+    # `markdown` on the div (md_in_html, in mkdocs.yml): the lines inside stay
+    # Markdown, so MkDocs still rewrites and checks the links to the pages.
+    output  = '<div class="latest-term" markdown>\n\n'
+    output += f'<span class="term-prompt">$ latest {wg}</span>\n\n'
     if not items:
-        return "_No references yet._\n"
-    output  = "**Latest updates**\n\n"
-    output += "| Updated | Reference | Contributor |\n"
-    output += "|---------|-----------|-------------|\n"
+        output += '<span class="term-comment"># no references yet</span>\n\n'
     for item in items:
         d     = item.get("data", {})
-        meta  = item.get("meta", {})
         title = d.get("title") or "—"
-        text  = shorten(title).replace("[", "(").replace("]", ")").replace("|", "\\|")
-        hover = title.replace('"', "'").replace("|", "\\|")
-        # Who made the last change; Zotero reports it for group items, and the
-        # creator stands in when it does not.
-        user  = meta.get("lastModifiedByUser") or meta.get("createdByUser") or {}
-        name  = user.get("username") or user.get("name", "") if isinstance(user, dict) else ""
-        who   = f"[{name}](https://www.zotero.org/{name})" if name else "—"
+        # Brackets would end the link text; <, *, _ and ` would read as HTML
+        # or emphasis.
+        text  = shorten(title).replace("[", "(").replace("]", ")").replace("<", "&lt;")
+        text  = re.sub(r"([\\`*_])", r"\\\1", text)
+        hover = title.replace('"', "'")
         when  = d.get("dateModified", "")[:10] or "—"
-        output += f'| {when} | [{text}]({wg}/index.md#ref-{d["key"]} "{hover}") | {who} |\n'
+        output += (f'- <span class="term-date">{when}</span> '
+                   f'[{text}]({wg}/index.md#ref-{d["key"]} "{hover}")\n')
+    output += "\n</div>\n"
     return output
 
 def update_home(blocks, path="docs/index.md"):

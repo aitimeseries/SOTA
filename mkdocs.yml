@@ -14,6 +14,14 @@ theme:
     - search.highlight
     - toc.integrate
 
+# md_in_html: Markdown inside the home page's <div class="latest-term" markdown>
+# blocks, so their links stay checked by MkDocs.
+markdown_extensions:
+  - md_in_html
+
+extra_css:
+  - stylesheets/terminal.css
+
 nav:
   - Home: index.md
   - IEEE P3579: p3579/index.md
