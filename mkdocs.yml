@@ -22,6 +22,12 @@ markdown_extensions:
 extra_css:
   - stylesheets/terminal.css
 
+# A link to a missing #anchor is a warning, so `mkdocs build --strict` in the
+# sync fails on it: the home page's #ref- links are checked at every sync
+# (C-S19-10). MkDocs also counts the id="…" of raw HTML as anchors.
+validation:
+  anchors: warn
+
 nav:
   - Home: index.md
   - IEEE P3579: p3579/index.md
