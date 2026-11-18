@@ -3,11 +3,12 @@ import requests, os, json, sys
 import joint   # scripts/joint.py: the joint-page rules, checked offline by check_matching.py
 
 # slug -> (environment variable holding the Zotero group ID, page label).
-# The slug is the docs/ folder and the URL path of the page.
+# The slug is the docs/ folder and the URL path of the page. Only the two
+# project groups are read: the joint page is computed from them (#18), so
+# the joint Zotero group and its secret are no longer needed.
 GROUP_ENV = {
     "p3579":       ("ZOTERO_GROUP_ID_P3579",       "IEEE P3579"),
     "p3998":       ("ZOTERO_GROUP_ID_P3998",       "IEEE P3998"),
-    "p3579-p3998": ("ZOTERO_GROUP_ID_P3579_P3998", "IEEE P3579 & P3998 (Joint)"),
 }
 
 # In a workflow, an unset secret is an empty string, not a missing variable:
@@ -28,8 +29,9 @@ GROUPS = {
 
 # The two project groups are read and rendered; the joint page is computed
 # from them (#18): a reference is common when it is in both.
-PROJECTS = ("p3579", "p3998")
-JOINT    = "p3579-p3998"
+PROJECTS    = ("p3579", "p3998")
+JOINT       = "p3579-p3998"
+JOINT_LABEL = "IEEE P3579 & P3998 (Joint)"
 
 # Intro line under each page title. The pages are regenerated at each sync:
 # edit the text here, never in docs/.
@@ -101,7 +103,25 @@ def _read_pages(path, params):
     if len(results) != total or len(keys) != total:
         sys.exit(f"GET {path}: read {len(results)} results ({len(keys)} distinct), "
                  f"Total-Results says {total}")
+    # Library version of each complete read, per group (/groups/<id>/...).
+    GROUP_VERSIONS.setdefault(path.split("/")[2], []).append(version)
     return results
+
+# group id -> library versions seen by its complete reads, in order (C-S19-4).
+GROUP_VERSIONS = {}
+
+def warn_group_changes():
+    """A page is built from many reads (collections, each section, items/top).
+    If a group's library changed between its first and last read, a reference
+    moved meanwhile may be read twice or not at all: say so (the run stays
+    green; the sync PR still opens, and its reviewer knows to run it again)."""
+    slug_of = {gid: slug for slug, (gid, _) in GROUPS.items()}
+    for gid, versions in GROUP_VERSIONS.items():
+        if versions and versions[0] != versions[-1]:
+            message = (f"{slug_of.get(gid, gid)}: the group changed during the sync "
+                       f"(library version {versions[0]} -> {versions[-1]}); its pages may "
+                       f"mix two states: run the sync again")
+            print(f"::warning::{annotation(message)}")
 
 def annotation(text):
     """Escape a message for a GitHub Actions workflow command."""
@@ -420,7 +440,7 @@ def render_joint(state):
         placements += [(path, a_key) for path in paths]
         names.update(n for n in (username(item_a), username(item_b)) if n)
 
-    output  = f"# State of the Art — {GROUP_ENV[JOINT][1]}\n\n{INTROS[JOINT]}\n\n"
+    output  = f"# State of the Art — {JOINT_LABEL}\n\n{INTROS[JOINT]}\n\n"
     published = {}
     if not items:
         output += "_No references yet._\n\n"
@@ -473,3 +493,4 @@ for wg in PROJECTS:
 
 latest_blocks[JOINT] = render_joint(state)
 update_home(latest_blocks)
+warn_group_changes()
