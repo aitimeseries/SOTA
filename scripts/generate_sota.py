@@ -47,7 +47,7 @@ def get_paged(path, params=None):
     edited or added between two page reads can shift the pages): a
     truncated read must never pass for a full one."""
     params = dict(params or {}, limit=100)
-    results, start, total = [], 0, None
+    results, start, total, version = [], 0, None, None
     while True:
         r = requests.get(
             f"{BASE_URL}{path}",
@@ -59,6 +59,15 @@ def get_paged(path, params=None):
             sys.exit(f"GET {path} -> {r.status_code} {r.text[:200]!r}")
         if "Total-Results" not in r.headers:
             sys.exit(f"GET {path}: no Total-Results header, cannot check the read is complete")
+        # Last-Modified-Version is the library version: if it moves between two
+        # pages, an item was added, edited or deleted mid-read and the pages may
+        # have shifted (a deletion can skip an item with every count still right).
+        page_version = r.headers.get("Last-Modified-Version")
+        if version is None:
+            version = page_version
+        elif page_version != version:
+            sys.exit(f"GET {path}: the library changed during the read "
+                     f"(version {version} -> {page_version}); run the sync again")
         page = r.json()
         results.extend(page)
         total = int(r.headers["Total-Results"])
@@ -152,7 +161,11 @@ def clean_note(html_note):
     import re
     return re.sub(r'<[^>]+>', '', html_note).strip()
 
-def render_table(group_id, items, published=None):
+def render_table(group_id, items, published=None, page_ids=None):
+    """page_ids: the ids already emitted on this page. A reference filed in
+    several sections keeps a row in each, but its ref- id and its note blocks
+    (with their note- ids) are emitted at its first occurrence only."""
+    page_ids = set() if page_ids is None else page_ids
     if not items:
         return "_No references yet._\n\n"
 
@@ -170,6 +183,9 @@ def render_table(group_id, items, published=None):
         item_key = item["data"]["key"]
         if published is not None:
             published[item_key] = item
+        ref_id = f"ref-{item_key}"
+        first  = ref_id not in page_ids
+        page_ids.add(ref_id)
         authors  = ", ".join(
             a.get("lastName", "") for a in d.get("creators", [])
         ) or "—"
@@ -190,12 +206,14 @@ def render_table(group_id, items, published=None):
             creator   = note_meta.get("createdByUser", {}).get("username", "WG")
             date      = note_data.get("dateAdded", "")[:10]
             if content:
-                all_notes.append((item_key, title, content, creator, date))
+                if first:
+                    all_notes.append((item_key, title, content, creator, date))
                 item_has_notes = True
 
-        # Build table row with anchor and optional note link
+        # Build table row with anchor (first occurrence only) and optional note link
         note_cell = f'<a href="#note-{item_key}">📝</a>' if item_has_notes else "—"
-        table_rows += f'| {authors} | <span id="ref-{item_key}">{title_cell}</span> | {year} | {doi} | {note_cell} |\n'
+        span_open = f'<span id="{ref_id}">' if first else "<span>"
+        table_rows += f'| {authors} | {span_open}{title_cell}</span> | {year} | {doi} | {note_cell} |\n'
 
     # Output: table first
     output  = "| Authors | Title | Year | DOI | Notes |\n"
@@ -209,7 +227,10 @@ def render_table(group_id, items, published=None):
                 summary = content[:80].rsplit(" ", 1)[0] + "…"
             else:
                 summary = content
-            output += f'<details id="note-{item_key}">\n'
+            note_id = f"note-{item_key}"
+            id_attr = f' id="{note_id}"' if note_id not in page_ids else ""
+            page_ids.add(note_id)
+            output += f'<details{id_attr}>\n'
             output += f'<summary>💬 <b>{ref_title}</b> — {summary}</summary>\n\n'
             output += f'<p>{content}</p>\n'
             output += f'<p><em>— {creator}, {date}</em> · <a href="#ref-{item_key}">↩ back to reference</a></p>\n\n'
@@ -217,7 +238,8 @@ def render_table(group_id, items, published=None):
 
     return output
 
-def render_section(group_id, col_key, collections, children, depth=2, published=None):
+def render_section(group_id, col_key, collections, children, depth=2,
+                   published=None, page_ids=None):
     col     = collections[col_key]
     name    = col["name"]
     heading = "#" * depth
@@ -228,11 +250,12 @@ def render_section(group_id, col_key, collections, children, depth=2, published=
     if sub_keys:
         for sub_key in sub_keys:
             output += render_section(
-                group_id, sub_key, collections, children, depth + 1, published
+                group_id, sub_key, collections, children, depth + 1,
+                published, page_ids
             )
     else:
         items = get_items(group_id, col_key)
-        output += render_table(group_id, items, published)
+        output += render_table(group_id, items, published, page_ids)
 
     return output
 
@@ -322,8 +345,10 @@ for wg, (group_id, label) in GROUPS.items():
     roots, children = build_hierarchy(collections)
 
     published = {}
+    page_ids  = set()    # ids emitted on this page (one set per page, P-S19-15)
     for root_key in roots:
-        output += render_section(group_id, root_key, collections, children, published=published)
+        output += render_section(group_id, root_key, collections, children,
+                                 published=published, page_ids=page_ids)
     latest_blocks[wg] = render_latest(wg, published)
 
     # Contributors section
