@@ -1,5 +1,6 @@
 site_name: State of the Art — AI & Time Series
 site_url: https://aitimeseries.com
+copyright: This site is moderated by the officers of the IEEE AI and Time Series Working Group (AITS-WG).
 
 theme:
   name: material
@@ -18,3 +19,4 @@ nav:
   - IEEE P3579: p3579/index.md
   - IEEE P3998: p3998/index.md
   - Joint P3579 & P3998: p3579-p3998/index.md
+  - Classification: classification.md

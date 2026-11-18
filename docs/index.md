@@ -2,6 +2,8 @@
 
 Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG).
 
+How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How references are classified](classification.md).
+
 ## Standard Projects
 
 ### IEEE P3579 – AI Systems Applied to Time Series
