@@ -41,7 +41,7 @@ _No references yet._
 | Authors | Title | Year | DOI | Notes |
 |---------|-------|------|-----|-------|
 | — | <span id="ref-UGU54QGJ">[Time Series Forecasting Models – Hugging Face](https://huggingface.co/models)</span> | 2026 |  | — |
-| — | <span id="ref-6CB8RX6D">[Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets)</span> | 2025 |  | — |
+| — | <span>[Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets)</span> | 2025 |  | — |
 
 ## STANDARDS
 
