@@ -12,8 +12,11 @@ Welcome to the public SOTA of the IEEE AI and Time Series Working Group (AITS-WG
 
 | Updated | Reference | Contributor |
 |---------|-----------|-------------|
-| 2026-03-25 | [Artificial Intelligence Algorithm for Optimal Time Series…](p3579/index.md#ref-7AH99IWN "Artificial Intelligence Algorithm for Optimal Time Series Data Model") | [jschneerson](https://www.zotero.org/jschneerson) |
-| 2026-03-25 | [Explainable AI for Time Series Classification: A Review…](p3579/index.md#ref-NJNFHFNK "Explainable AI for Time Series Classification: A Review, Taxonomy and Research Directions") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-18 | [Explainable AI for Time Series Classification: A Review…](p3579/index.md#ref-NJNFHFNK "Explainable AI for Time Series Classification: A Review, Taxonomy and Research Directions") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-18 | [Artificial Intelligence Algorithm for Optimal Time Series…](p3579/index.md#ref-7AH99IWN "Artificial Intelligence Algorithm for Optimal Time Series Data Model") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-18 | [Chronos Models & Datasets - a amazon Collection](p3579/index.md#ref-6CB8RX6D "Chronos Models & Datasets - a amazon Collection") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-18 | [Time Series Forecasting Models – Hugging Face](p3579/index.md#ref-UGU54QGJ "Time Series Forecasting Models – Hugging Face") | [jschneerson](https://www.zotero.org/jschneerson) |
+| 2026-11-18 | [Time Series Forecasting With Deep Learning: A Survey](p3579/index.md#ref-4Q3UIAIE "Time Series Forecasting With Deep Learning: A Survey") | [jschneerson](https://www.zotero.org/jschneerson) |
 
 <!-- /latest:p3579 -->
 
