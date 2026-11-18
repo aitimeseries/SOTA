@@ -43,5 +43,5 @@ File a reference in a section that has no sub-sections. A reference filed on a s
 
 ## Sources
 
-- The scope of IEEE P3579 in its PAR modification (favorable vote, 2026). The [IEEE SA project page](https://standards.ieee.org/ieee/3579/11981/) may still show the earlier scope.
+- The scope of [IEEE P3579](https://standards.ieee.org/ieee/3579/11981/).
 - The scope of [IEEE P3998](https://standards.ieee.org/ieee/3998/12501/).
