@@ -23,6 +23,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
+      # The joint-page rules, checked offline before any page is generated:
+      # a failing rule stops the run (C-S19-1).
+      - name: Check the joint-page rules
+        run: python scripts/check_matching.py
+
       - name: Run Zotero sync script
         run: python scripts/generate_sota.py
         env:
