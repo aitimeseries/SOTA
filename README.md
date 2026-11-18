@@ -50,7 +50,8 @@ SOTA/
 │   ├── p3579/index.md       # IEEE P3579 references (auto-generated)
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
 │   ├── p3579-p3998/index.md # References in both P3579 and P3998 (auto-generated, computed)
-│   └── classification.md    # How references are classified (criteria for contributors)
+│   ├── classification.md    # How references are classified (criteria for contributors)
+│   └── stylesheets/terminal.css # Terminal style of the home page's "latest updates" blocks
 ├── scripts/
 │   ├── generate_sota.py     # Zotero API sync script
 │   ├── joint.py             # Joint-page rules (matching, sections, notes), no network
@@ -128,7 +129,7 @@ python scripts/generate_sota.py
 ### Zotero Sync (`sync-zotero.yml`)
 
 - **Trigger:** Weekly (Monday 08:00 UTC) or manual dispatch
-- **Action:** Checks the joint-page rules offline (`check_matching.py`), runs `generate_sota.py`, builds the site with `mkdocs build --strict` (no deploy), commits changes, and opens a Pull Request for review
+- **Action:** Checks the joint-page rules offline (`check_matching.py`), runs `generate_sota.py`, builds the site with `mkdocs build --strict` (no deploy) and keeps it 7 days as the run's `site-preview` artifact, commits changes, and opens a Pull Request for review
 - **Branch:** Changes are pushed to `zotero-sync` branch
 
 ### Move Zotero References (`zotero-move.yml`)
