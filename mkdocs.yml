@@ -4,6 +4,8 @@ copyright: This site is moderated by the officers of the IEEE AI and Time Series
 
 theme:
   name: material
+  # overrides/partials/copyright.html: the footer, with the officers.
+  custom_dir: overrides
   language: en
   palette:
     primary: indigo
@@ -15,18 +17,38 @@ theme:
     - toc.integrate
 
 # md_in_html: Markdown inside the home page's <div class="latest-term" markdown>
-# blocks, so their links stay checked by MkDocs.
+# and <div class="term-panel" markdown> blocks, so their links stay checked by
+# MkDocs. attr_list: the home page's buttons, [View SOTA →](…){ .term-btn }.
 markdown_extensions:
   - md_in_html
+  - attr_list
 
 extra_css:
   - stylesheets/terminal.css
+  - stylesheets/officers.css
+
+extra_javascript:
+  - javascripts/officers.js
 
 # A link to a missing #anchor is a warning, so `mkdocs build --strict` in the
 # sync fails on it: the home page's #ref- links are checked at every sync
 # (C-S19-10). MkDocs also counts the id="…" of raw HTML as anchors.
 validation:
   anchors: warn
+
+# The officers, in the footer of every page (overrides/partials/copyright.html).
+# email_encoded: the address reversed, then base64-encoded, never in clear;
+# see the README, "Officers in the footer".
+extra:
+  officers:
+    - role: Chair
+      name: Jonathan Schneerson
+      linkedin: https://www.linkedin.com/in/jschneerson/
+      email_encoded: Z3JvLmVlZWlAbm9zcmVlbmhjc2o=
+    - role: Vice Chair
+      name: Georgia Schneerson
+      linkedin: https://www.linkedin.com/in/gschneerson/
+      email_encoded: Z3JvLmVlZWlAbm9zcmVlbmhjc2c=
 
 nav:
   - Home: index.md
