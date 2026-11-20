@@ -93,15 +93,17 @@
 }
 
 /* The "latest updates" blocks end on a prompt waiting for the next
-   command: "$" and a blinking green block cursor, still when the reader asks
-   for less motion. Drawn here, so the sync's render_latest is unchanged. */
+   command: "$" and a green block cursor. It blinks 4 times (about 4.4 s),
+   then stays on: blinking that lasts over 5 s would need a way to stop it
+   (WCAG 2.2.2). Still from the start when the reader asks for less motion.
+   Drawn here, so the sync's render_latest is unchanged. */
 .md-typeset div.latest-term::after {
   content: "$";          /* browsers without the alternative-text syntax */
   content: "$" / "";
   display: block;
   color: #b4b2a9;
   background: linear-gradient(#5dcaa5, #5dcaa5) 2ch 50% / .6em 1.1em no-repeat;
-  animation: term-blink 1.1s steps(1) infinite;
+  animation: term-blink 1.1s steps(1) 4;
 }
 
 @keyframes term-blink {
