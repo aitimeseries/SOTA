@@ -1,0 +1,42 @@
+{#-
+  Material 9.8.1's partials/copyright.html, plus the officers under the
+  moderation line (extra.officers in mkdocs.yml).
+  Each email is stored reversed and base64-encoded (email_encoded), never in
+  clear: docs/javascripts/officers.js decodes it only when a reader clicks
+  the email icon. A value holding an "@" is an address in clear, which
+  base64 never contains: its icon is left out, so the page never shows it.
+-#}
+<div class="md-copyright">
+  {% if config.copyright %}
+    <div class="md-copyright__highlight">
+      {{ config.copyright }}
+    </div>
+  {% endif %}
+  {% if config.extra.officers %}
+    <ul class="md-officers">
+      {% for officer in config.extra.officers %}
+        <li>
+          <span class="md-officers__role">{{ officer.role | e }}</span>
+          <span class="md-officers__name">{{ officer.name | e }}</span>
+          {% if officer.linkedin %}
+            <a href="{{ officer.linkedin | e }}" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn profile of {{ officer.name | e }}">
+              {% include ".icons/fontawesome/brands/linkedin.svg" %}
+            </a>
+          {% endif %}
+          {% if officer.email_encoded and "@" not in officer.email_encoded %}
+            <button type="button" class="md-officers__email" data-e="{{ officer.email_encoded | e }}" title="Email" aria-label="Show the email address of {{ officer.name | e }}">
+              {% include ".icons/material/email-outline.svg" %}
+            </button>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    <noscript>The email addresses need JavaScript.</noscript>
+  {% endif %}
+  {% if not config.extra.generator == false %}
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  {% endif %}
+</div>
