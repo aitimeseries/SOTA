@@ -48,7 +48,23 @@
 }
 
 .md-footer-meta .md-officers svg {
-  width: .8rem;
-  height: .8rem;
+  width: .95rem;
+  height: .95rem;
   fill: currentColor;
+}
+
+/* The usual LinkedIn mark: the blue square with a white "in". The icon draws
+   the "in" as holes in the square; a white box behind it, smaller than the
+   square so its rounded corners stay clear, fills them. */
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin {
+  color: #0a66c2;
+}
+
+.md-footer-meta .md-officers__linkedin svg {
+  background: linear-gradient(#fff, #fff) center / 70% 70% no-repeat;
+}
+
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin:hover,
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin:focus-visible {
+  color: #378fe9;
 }

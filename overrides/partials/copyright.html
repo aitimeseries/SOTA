@@ -19,7 +19,7 @@
           <span class="md-officers__role">{{ officer.role | e }}</span>
           <span class="md-officers__name">{{ officer.name | e }}</span>
           {% if officer.linkedin %}
-            <a href="{{ officer.linkedin | e }}" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn profile of {{ officer.name | e }}">
+            <a class="md-officers__linkedin" href="{{ officer.linkedin | e }}" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn profile of {{ officer.name | e }}">
               {% include ".icons/fontawesome/brands/linkedin.svg" %}
             </a>
           {% endif %}
