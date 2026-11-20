@@ -96,6 +96,7 @@
    command: "$" and a blinking green block cursor, still when the reader asks
    for less motion. Drawn here, so the sync's render_latest is unchanged. */
 .md-typeset div.latest-term::after {
+  content: "$";          /* browsers without the alternative-text syntax */
   content: "$" / "";
   display: block;
   color: #b4b2a9;
@@ -127,8 +128,8 @@
   transition: background .15s, color .15s, border-color .15s;
 }
 
-.md-typeset a.term-btn::before { content: "[ " / ""; color: #888780; }
-.md-typeset a.term-btn::after  { content: " ]" / ""; color: #888780; }
+.md-typeset a.term-btn::before { content: "[ "; content: "[ " / ""; color: #888780; }
+.md-typeset a.term-btn::after  { content: " ]"; content: " ]" / ""; color: #888780; }
 
 .md-typeset a.term-btn:hover,
 .md-typeset a.term-btn:focus-visible {
