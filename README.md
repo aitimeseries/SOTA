@@ -88,10 +88,10 @@ The footer of every page lists the officers under the moderation line: role, nam
 
 **An email address is never written in clear**, neither in `mkdocs.yml` nor in the page, so that bots harvesting addresses from the site or from this public repository find none. `email_encoded` holds the address reversed, then base64-encoded. The page decodes it only when a reader clicks the email icon (`docs/javascripts/officers.js`), and the icon then becomes a mail link. A value holding an `@` (an address in clear) is not shown.
 
-To encode an address (macOS, Linux, Git Bash):
+To encode an address (macOS, Linux, Git Bash; Perl alone, so the output is the same everywhere):
 
 ```bash
-perl -e 'print scalar reverse shift' 'name@ieee.org' | base64
+perl -MMIME::Base64 -e 'print encode_base64(scalar reverse(shift), ""), "\n"' 'name@ieee.org'
 ```
 
 This stops the bots that search the HTML or the repository for addresses, and most of those that run JavaScript, since they do not click. It does not stop someone who targets this site on purpose: base64 is not encryption. Do not put an address in clear in a commit, a pull request or an issue either.
