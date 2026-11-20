@@ -51,14 +51,17 @@ SOTA/
 │   ├── p3998/index.md       # IEEE P3998 references (auto-generated)
 │   ├── p3579-p3998/index.md # References in both P3579 and P3998 (auto-generated, computed)
 │   ├── classification.md    # How references are classified (criteria for contributors)
-│   └── stylesheets/terminal.css # Terminal style of the home page's "latest updates" blocks
+│   ├── stylesheets/terminal.css # Terminal style of the home page (intro panel, "latest updates" blocks, buttons)
+│   ├── stylesheets/officers.css # The officers in the footer
+│   └── javascripts/officers.js  # Shows an officer's email address on click
 ├── scripts/
 │   ├── generate_sota.py     # Zotero API sync script
 │   ├── joint.py             # Joint-page rules (matching, sections, notes), no network
 │   ├── check_matching.py    # Offline checks of joint.py, run before each sync
 │   ├── zotero_move.py       # Move script (copy, verify, trash)
 │   └── zotero_moves.json    # Moves manifest (reviewed like code)
-├── mkdocs.yml               # MkDocs configuration
+├── overrides/partials/copyright.html # Footer: Material's copyright block, plus the officers
+├── mkdocs.yml               # MkDocs configuration (the officers: extra.officers)
 └── README.md
 ```
 
@@ -78,6 +81,20 @@ To add a new reference, add it to the Zotero group of the project it belongs to,
 
 - **Both projects:** add it to one group, then drag it onto the same section of the other group in Zotero desktop. The drag copies the reference with its notes and links the copy to the original, which the sync uses to recognize them as one reference; it then appears on the P3579, P3998 and joint pages. Without that link, the sync falls back to the same DOI, then the same URL.
 - **File it in a section that has no sub-sections:** a reference filed on a section with sub-sections, or on no section, is on no page (the sync names it in a warning).
+
+## Officers in the footer
+
+The footer of every page lists the officers under the moderation line: role, name, LinkedIn profile, and an email icon. They are set in `mkdocs.yml`, under `extra.officers`, and rendered by `overrides/partials/copyright.html`.
+
+**An email address is never written in clear**, neither in `mkdocs.yml` nor in the page, so that bots harvesting addresses from the site or from this public repository find none. `email_encoded` holds the address reversed, then base64-encoded. The page decodes it only when a reader clicks the email icon (`docs/javascripts/officers.js`), and the icon then becomes a mail link. A value holding an `@` (an address in clear) is not shown.
+
+To encode an address (macOS, Linux, Git Bash):
+
+```bash
+perl -e 'print scalar reverse shift' 'name@ieee.org' | base64
+```
+
+This stops the bots that search the HTML or the repository for addresses, and most of those that run JavaScript, since they do not click. It does not stop someone who targets this site on purpose: base64 is not encryption. Do not put an address in clear in a commit, a pull request or an issue either.
 
 ## Setup
 
