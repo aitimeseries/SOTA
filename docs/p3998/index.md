@@ -49,7 +49,9 @@ P3579 standardizes how AIS consume external time series; P3998 addresses the com
 
 ### Datasets
 
-_No references yet._
+| Authors | Title | Year | DOI | Notes |
+|---------|-------|------|-----|-------|
+| — | <span id="ref-HEVNVWAX">[Chronos Models & Datasets - a amazon Collection](https://huggingface.co/collections/amazon/chronos-models-and-datasets)</span> | 2025 |  | — |
 
 ### Frameworks
 
