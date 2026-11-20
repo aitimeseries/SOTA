@@ -43,6 +43,7 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 <span class="term-prompt">$ latest p3998</span>
 
+- <span class="term-date">2026-11-18</span> [Chronos Models & Datasets - a amazon Collection](p3998/index.md#ref-HEVNVWAX "Chronos Models & Datasets - a amazon Collection")
 - <span class="term-date">2026-03-26</span> [A2C — Logger — Stable Baselines3 2.8.0a4 documentation](p3998/index.md#ref-Z6TDV2T2 "A2C — Logger — Stable Baselines3 2.8.0a4 documentation")
 - <span class="term-date">2026-03-26</span> [PPO — Logger — Stable Baselines3 2.8.0a4 documentation](p3998/index.md#ref-FCNVJ24Q "PPO — Logger — Stable Baselines3 2.8.0a4 documentation")
 
@@ -61,8 +62,7 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 <span class="term-prompt">$ latest p3579-p3998</span>
 
-<span class="term-comment"># no references yet</span>
-
+- <span class="term-date">2026-11-18</span> [Chronos Models & Datasets - a amazon Collection](p3579-p3998/index.md#ref-6CB8RX6D "Chronos Models & Datasets - a amazon Collection")
 
 </div>
 
