@@ -1,10 +1,16 @@
 # State of the Art — AI & Time Series
 
+<div class="term-panel" markdown>
+
+<span class="term-prompt">$ about aits-wg</span>
+
 Welcome to the public state of the art (SOTA) of the IEEE AI and Time Series Working Group (AITS-WG).
 
 AITS-WG develops standards within the [IEEE Standards Association (IEEE SA)](https://standards.ieee.org/). It reports to the Artificial Intelligence Standards Committee (C/AISC) of the IEEE Computer Society, and works on two standards projects authorized by the IEEE SA Standards Board: IEEE P3579 and IEEE P3998, presented below. The references on these pages are the ones the working group collects for each project.
 
-How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How references are classified](classification.md).
+How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How references are classified](classification.md).<span class="term-cursor" aria-hidden="true"></span>
+
+</div>
 
 ## Standard Projects
 
@@ -26,8 +32,8 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 <!-- /latest:p3579 -->
 
-- [View SOTA →](p3579/index.md)
-- [Join at IEEE SA →](http://p3579.aitimeseries.com)
+[View SOTA →](p3579/index.md){ .term-btn }
+[Join at IEEE SA →](https://p3579.aitimeseries.com){ .term-btn }
 
 ### IEEE P3998 – Time Series Applied to AI Systems
 
@@ -44,8 +50,8 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 <!-- /latest:p3998 -->
 
-- [View SOTA →](p3998/index.md)
-- [Join at IEEE SA →](http://p3998.aitimeseries.com)
+[View SOTA →](p3998/index.md){ .term-btn }
+[Join at IEEE SA →](https://p3998.aitimeseries.com){ .term-btn }
 
 ### Joint P3579 & P3998 – References common to both projects
 
@@ -62,7 +68,7 @@ How a reference is classified under IEEE P3579, IEEE P3998 or both: see [How ref
 
 <!-- /latest:p3579-p3998 -->
 
-- [View SOTA →](p3579-p3998/index.md)
+[View SOTA →](p3579-p3998/index.md){ .term-btn }
 
 ---
 

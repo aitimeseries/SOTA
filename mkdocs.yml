@@ -15,9 +15,11 @@ theme:
     - toc.integrate
 
 # md_in_html: Markdown inside the home page's <div class="latest-term" markdown>
-# blocks, so their links stay checked by MkDocs.
+# and <div class="term-panel" markdown> blocks, so their links stay checked by
+# MkDocs. attr_list: the home page's buttons, [View SOTA →](…){ .term-btn }.
 markdown_extensions:
   - md_in_html
+  - attr_list
 
 extra_css:
   - stylesheets/terminal.css
