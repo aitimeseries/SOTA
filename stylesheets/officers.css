@@ -1,0 +1,70 @@
+/* Footer: the officers under the moderation line, written by
+   overrides/partials/copyright.html from extra.officers in mkdocs.yml.
+   The footer's own style, not the terminal. */
+
+.md-footer-meta.md-typeset ul.md-officers {
+  list-style: none;
+  margin: .4rem 0 .7rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 2rem;
+}
+
+.md-footer-meta.md-typeset .md-officers li {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 .5rem;
+}
+
+.md-footer-meta .md-officers__role {
+  color: var(--md-footer-fg-color--light);
+}
+
+/* The name, discreet: the footer's dimmest text color. */
+.md-footer-meta .md-officers__name {
+  color: var(--md-footer-fg-color--lighter);
+}
+
+.md-footer-meta.md-typeset .md-officers a,
+.md-footer-meta.md-typeset .md-officers button {
+  display: inline-flex;
+  align-items: center;
+  color: var(--md-footer-fg-color--light);
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.md-footer-meta.md-typeset .md-officers a:hover,
+.md-footer-meta.md-typeset .md-officers a:focus-visible,
+.md-footer-meta.md-typeset .md-officers button:hover,
+.md-footer-meta.md-typeset .md-officers button:focus-visible {
+  color: var(--md-footer-fg-color);
+}
+
+.md-footer-meta .md-officers svg {
+  width: .95rem;
+  height: .95rem;
+  fill: currentColor;
+}
+
+/* The usual LinkedIn mark: the blue square with a white "in". The icon draws
+   the "in" as holes in the square; a white box behind it, smaller than the
+   square so its rounded corners stay clear, fills them. */
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin {
+  color: #0a66c2;
+}
+
+.md-footer-meta .md-officers__linkedin svg {
+  background: linear-gradient(#fff, #fff) center / 70% 70% no-repeat;
+}
+
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin:hover,
+.md-footer-meta.md-typeset .md-officers a.md-officers__linkedin:focus-visible {
+  color: #378fe9;
+}
